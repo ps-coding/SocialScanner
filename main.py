@@ -1,4 +1,5 @@
 #  Copyright (c) 2024 Prasham Shah. All rights reserved.
+import itertools
 
 import instaloader
 import nltk
@@ -31,8 +32,6 @@ def preprocess(text: str) -> str:
 
     # Rejoin
     final = ' '.join(tokens)
-
-    print(final)
 
     return final
 
@@ -88,7 +87,7 @@ def instagram_threat_assessment(username: str) -> float:
     posts = profile.get_posts()
 
     recency_factor = 1  # Decrease importance of older posts
-    for post in posts:
+    for post in itertools.islice(posts, 0, 20):
         if post.caption is not None:
             threat_score += threat_analysis(post.caption) * recency_factor
         recency_factor /= 1.5
