@@ -1,99 +1,128 @@
+#  Copyright (c) 2024 Prasham Shah. All rights reserved.
+
 import instaloader
-import numpy as np
-import pandas as pd
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.models import Sequential
+import nltk
+import nltk.corpus
+import nltk.sentiment
+import nltk.tokenize
+
+analyzer = nltk.sentiment.vader.SentimentIntensityAnalyzer()
 
 
-def rateThreat(text):
+def preprocess(text: str) -> str:
+    """
+    Preprocess text
+    :param text: text to be preprocessed
+    :type text: str
+    :return: processed text
+    :rtype: str
+    """
+    # Tokenization
+    tokens = nltk.tokenize.word_tokenize(text.lower())
+
+    # Stopwords
+    stopwords = nltk.corpus.stopwords.words('english')
+    tokens = [token for token in tokens if token not in stopwords]
+
+    # Lemmatize
+    lemmatizer = nltk.WordNetLemmatizer()
+    tokens = [lemmatizer.lemmatize(token) for token in tokens]
+
+    # Rejoin
+    final = ' '.join(tokens)
+
+    return final
+
+
+def threat_analysis(text: str) -> float:
+    """
+    Rate the threat level of a text
+    :param text: text to be evaluated
+    :type text: str
+    :return: threat level (lower is more threatening)
+    :rtype: float
+    """
+    analyzer_text = preprocess(text)
+
     # Threat
-    threatScore = 0
+    threat_score = 0
 
-    # INSERT NEURAL NET HERE
+    # Threatening words
+    threat = ['kill', 'die', 'death', 'hate', 'destroy', 'massacre',
+              'slaughter']  # TODO: Add more and use a vector database
+
+    for word in analyzer_text:
+        if word in threat:
+            threat_score -= 1
+
+    # Sentiment
+    sentiment = analyzer.polarity_scores(analyzer_text)
+    threat_score += sentiment["compound"] * 5  # TODO: Consider using "neg" or another factor instead
+
+    return threat_score
 
 
-def threat_assessment(username):
+def instagram_threat_assessment(username: str) -> float:
+    """
+    Assess the threat level of an Instagram user
+    :param username: Instagram handle
+    :type username: str
+    :return: threat level of the user
+    :rtype: float
+    """
     # Get user information
     bot = instaloader.Instaloader()
     profile = instaloader.Profile.from_username(bot.context, username)
 
     # Threat
-    threatScore = 0
+    threat_score = 0
 
     # Information
     biography = profile.biography
-    threatScore += rateThreat(biography)
+    threat_score += threat_analysis(biography)
 
     # Posts
     posts = profile.get_posts()
 
+    recency_factor = 1  # Decrease importance of older posts
     for post in posts:
-        threatScore += rateThreat(post.caption)
+        if post.caption is not None:
+            threat_score += threat_analysis(post.caption) * recency_factor
+        recency_factor /= 1.5
 
-    return threatScore
+    return threat_score
 
 
-def notebook():
-    model = Sequential()
-    model.add(Dense(64, input_dim=num_features, activation='relu'))  # replace num_features
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+def grades_threat_assessment(grades: list) -> float:
+    """
+    Determines the level/mental state of a student based on changes in grades
+    :param grades: array of grades in the format [before, after], with each grade in the format {subject: grade},
+    where the grade ranges from 0 to 1
+    :type grades: list
+    :return: threat level of the student
+    :rtype: float
+    """
+    # Threat
+    threat_score = 0
 
-    history = model.fit(X_train, Y_train, validation_data=(X_val, y_val), epochs=50,
-                        batch_size=32)  # initialize X and Y train elsewhere
-    test_loss, test_acc = model.evaluate(X_test, Y_test)
+    for subject in grades[1]:
+        threat_score += grades[1][subject] - grades[0][subject]
 
-    print(f'Test accuracy: {test_acc}')
+    return threat_score
 
-    model.save('mental_illness_risk_model.h5')
 
-    num_samples = 1000
+def summative_threat_assessment(username: str, grades: list) -> float:
+    """
+    Summative threat assessment
+    :param username: Instagram handle
+    :type username: str
+    :param grades: array of grades in the format [before, after], with each grade in the format {subject: grade},
+    where the grade ranges from 0 to 1
+    :type grades: list
+    :return: threat level of the user
+    :rtype: float
+    """
+    instagram_score = instagram_threat_assessment(username)
+    grades_score = grades_threat_assessment(grades)
 
-    age = np.random.normal(loc=35, scale=10, size=num_samples)
-    gender = np.random.choice(['Male', 'Female', 'Other'], size=num_samples)
-    education_level = np.random.choice(['High School', 'Bachelor', 'Master', 'PhD'], size=num_samples)
-
-    sleep_hours = np.random.normal(loc=7, scale=1.5, size=num_samples)
-    exercise_hours = np.random.normal(loc=3, scale=2, size=num_samples)
-    substance_use = np.random.choice(['Never', 'Occasionally', 'Regularly'], size=num_samples)
-
-    stress_levels = np.random.normal(loc=5, scale=2, size=num_samples)
-    social_support = np.random.normal(loc=3, scale=1.5, size=num_samples)
-
-    past_diagnoses = np.random.choice([0, 1], size=num_samples, p=[0.7, 0.3])
-    family_history = np.random.choice([0, 1], size=num_samples, p=[0.8, 0.2])
-
-    data = pd.DataFrame({
-        'Age': age,
-        'Gender': gender,
-        'Education_Level': education_level,
-        'Sleep_Hours': sleep_hours,
-        'Exercise_Hours': exercise_hours,
-        'Substance_Use': substance_use,
-        'Stress_Levels': stress_levels,
-        'Social_Support': social_support,
-        'Past_Diagnoses': past_diagnoses,
-        'Family_History': family_history
-    })
-
-    # Generates risk of mental illness based on logic
-    data['Mental_Illness_Risk'] = (data['Stress_Levels'] > 6) | (data['Past_Diagnoses'] == 1) | (
-            data['Family_History'] == 1)
-
-    # One-hot encode categorical variables
-    categorical_columns = ['Gender', 'Education_Level', 'Substance_Use']
-    encoder = OneHotEncoder(sparse=False)
-    encoded_categorical_data = encoder.fit_transform(data[categorical_columns])
-
-    # Standardize numerical variables
-    numerical_columns = ['Age', 'Sleep_Hours', 'Exercise_Hours', 'Stress_Levels', 'Social_Support']
-    scaler = StandardScaler()
-    scaled_numerical_data = scaler.fit_transform(data[numerical_columns])
-
-    # Combine preprocessed data
-    preprocessed_data = np.hstack([encoded_categorical_data, scaled_numerical_data])
-
-    # Define target variable
-    target = data['Mental_Illness_Risk'].astype(int)
+    return instagram_score + grades_score
