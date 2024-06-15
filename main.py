@@ -6,7 +6,8 @@ import nltk.corpus
 import nltk.sentiment
 import nltk.tokenize
 
-analyzer = nltk.sentiment.vader.SentimentIntensityAnalyzer()
+sentiment_analyzer = nltk.sentiment.vader.SentimentIntensityAnalyzer()
+instagram_bot = instaloader.Instaloader()
 
 
 def preprocess(text: str) -> str:
@@ -30,6 +31,8 @@ def preprocess(text: str) -> str:
 
     # Rejoin
     final = ' '.join(tokens)
+
+    print(final)
 
     return final
 
@@ -56,8 +59,9 @@ def threat_analysis(text: str) -> float:
             threat_score -= 1
 
     # Sentiment
-    sentiment = analyzer.polarity_scores(analyzer_text)
-    threat_score += sentiment["compound"] * 5  # TODO: Consider using "neg" or another factor instead
+    sentiment = sentiment_analyzer.polarity_scores(analyzer_text)
+    threat_score -= sentiment["neg"] * 5
+    threat_score += sentiment["compound"] * 2
 
     return threat_score
 
@@ -71,8 +75,7 @@ def instagram_threat_assessment(username: str) -> float:
     :rtype: float
     """
     # Get user information
-    bot = instaloader.Instaloader()
-    profile = instaloader.Profile.from_username(bot.context, username)
+    profile = instaloader.Profile.from_username(instagram_bot.context, username)
 
     # Threat
     threat_score = 0
@@ -95,7 +98,7 @@ def instagram_threat_assessment(username: str) -> float:
 
 def grades_threat_assessment(grades: list) -> float:
     """
-    Determines the level/mental state of a student based on changes in grades
+    Determines the mental state of a student based on changes in grades
     :param grades: array of grades in the format [before, after], with each grade in the format {subject: grade},
     where the grade ranges from 0 to 1
     :type grades: list
