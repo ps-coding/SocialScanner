@@ -42,13 +42,15 @@ def text_health_analysis(text: str) -> float:
                         'slaughter', 'depression', 'depressed', 'sad', 'sadness', 'suicide', 'murder', 'hatred']
 
     for word in analyzer_text:
+        # Add a negative value if the word is negative
+        health_score -= sentiment_analyzer.polarity_scores(word)["neg"] / len(analyzer_text)
+
+        # Particularly concerning words get an additional penalty
         if word in concerning_words:
             health_score -= 0.5
 
     # Sentiment analysis
-    sentiment = sentiment_analyzer.polarity_scores(analyzer_text)
-    health_score -= sentiment["neg"] * 5
-    health_score += sentiment["compound"] * 2
+    health_score += sentiment_analyzer.polarity_scores(analyzer_text)["compound"] * 2
 
     return health_score
 
