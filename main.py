@@ -10,7 +10,7 @@ import nltk.corpus
 import nltk.sentiment
 import nltk.tokenize
 
-from transformers import sentiment_pipeline
+from transformers import pipeline
 from nltk.tokenize import word_tokenize
 import nltk
 
