@@ -38,8 +38,8 @@ def text_health_analysis(text: str) -> float:
     health_score = 0
 
     # Concerning words
-    concerning_words = ['kill', 'die', 'death', 'hate', 'destroy', 'massacre',
-                        'slaughter', 'depression', 'depressed', 'sad', 'sadness', 'suicide', 'murder', 'hatred']
+    concerning_words = {'kill', 'die', 'death', 'hate', 'destroy', 'massacre',
+                        'slaughter', 'depression', 'depressed', 'sad', 'sadness', 'suicide', 'murder', 'hatred'}
 
     for word in analyzer_text:
         if word in concerning_words:
@@ -129,10 +129,34 @@ current_grades = {}
 
 def add_previous_grade():
     global previous_grades
-    subject, grade = previous_grades_entry.get().split(":")
+
+    try:
+        subject, grade = previous_grades_entry.get().split(":")
+    except:
+        error_window = tk.Toplevel()
+        error_window.title("Error")
+        error_label = tk.Label(error_window,
+                               text="Invalid input. Please enter the subject and grade separated by a colon.")
+        error_label.pack(padx=10, pady=5)
+        return
+
     subject = subject.strip().lower()
     grade = grade.strip()
-    previous_grades[subject] = float(grade) / 100
+    try:
+        grade_num = float(grade)
+        if grade_num < 0:
+            error_window = tk.Toplevel()
+            error_window.title("Error")
+            error_label = tk.Label(error_window, text="Invalid input. Please enter a positive number for the grade.")
+            error_label.pack(padx=10, pady=5)
+            return
+    except:
+        error_window = tk.Toplevel()
+        error_window.title("Error")
+        error_label = tk.Label(error_window, text="Invalid input. Please enter a number for the grade.")
+        error_label.pack(padx=10, pady=5)
+        return
+    previous_grades[subject] = grade_num / 100
     previous_grades_listbox.delete(0, tk.END)
     for subject in previous_grades:
         previous_grades_listbox.insert(tk.END, f"{subject}: {round(previous_grades[subject] * 100, 3)}%")
@@ -142,10 +166,34 @@ def add_previous_grade():
 
 def add_current_grade():
     global current_grades
-    subject, grade = current_grades_entry.get().split(":")
+
+    try:
+        subject, grade = current_grades_entry.get().split(":")
+    except:
+        error_window = tk.Toplevel()
+        error_window.title("Error")
+        error_label = tk.Label(error_window,
+                               text="Invalid input. Please enter the subject and grade separated by a colon.")
+        error_label.pack(padx=10, pady=5)
+        return
+
     subject = subject.strip().lower()
     grade = grade.strip()
-    current_grades[subject] = float(grade) / 100
+    try:
+        grade_num = float(grade)
+        if grade_num < 0:
+            error_window = tk.Toplevel()
+            error_window.title("Error")
+            error_label = tk.Label(error_window, text="Invalid input. Please enter a positive number for the grade.")
+            error_label.pack(padx=10, pady=5)
+            return
+    except:
+        error_window = tk.Toplevel()
+        error_window.title("Error")
+        error_label = tk.Label(error_window, text="Invalid input. Please enter a number for the grade.")
+        error_label.pack(padx=10, pady=5)
+        return
+    current_grades[subject] = grade_num / 100
     current_grades_listbox.delete(0, tk.END)
     for subject in current_grades:
         current_grades_listbox.insert(tk.END, f"{subject}: {round(current_grades[subject] * 100, 3)}%")
