@@ -10,6 +10,10 @@ import nltk.corpus
 import nltk.sentiment
 import nltk.tokenize
 
+from transformers import pipeline
+from nltk.tokenize import word_tokenize
+import nltk
+
 sentiment_analyzer = nltk.sentiment.vader.SentimentIntensityAnalyzer()
 instagram_bot = instaloader.Instaloader()
 
@@ -33,22 +37,32 @@ def preprocess_text(text: str) -> str:
 
 
 def text_health_analysis(text: str) -> float:
-    analyzer_text = preprocess_text(text)
+    # Tokenize the text
+    analyzer_text = word_tokenize(text.lower())
 
     health_score = 0
 
-    # Concerning words
-    concerning_words = {'kill', 'die', 'death', 'hate', 'destroy', 'massacre',
-                        'slaughter', 'depression', 'depressed', 'sad', 'sadness', 'suicide', 'murder', 'hatred'}
-
+    # Process each word using the sentiment analysis pipeline
     for word in analyzer_text:
-        if word in concerning_words:
-            health_score -= 0.5
+        result = sentiment_pipeline(word)
+        label = result[0]['label']
+        score = result[0]['score']
 
-    # Sentiment analysis
-    sentiment = sentiment_analyzer.polarity_scores(analyzer_text)
-    health_score -= sentiment["neg"] * 5
-    health_score += sentiment["compound"] * 2
+        # Adjust the health score based on the sentiment analysis result
+        if label == 'NEGATIVE':
+            health_score -= score  # Subtract the negativity score
+        elif label == 'POSITIVE':
+            health_score += score  # Add the positivity score
+
+    # Sentiment analysis for the whole text
+    sentiment = sentiment_pipeline(text)
+    overall_sentiment = sentiment[0]
+
+    # Adjust the health score based on the overall sentiment of the text
+    if overall_sentiment['label'] == 'NEGATIVE':
+        health_score -= overall_sentiment['score'] * 5
+    elif overall_sentiment['label'] == 'POSITIVE':
+        health_score += overall_sentiment['score'] * 2
 
     return health_score
 
