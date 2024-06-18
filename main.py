@@ -168,8 +168,9 @@ def clear_current_grades():
 def run_assessment():
     authentication_username = username_entry.get()
     authentication_password = password_entry.get()
+    username = instagram_entry.get()
 
-    if authentication_username != "" and authentication_password != "":
+    if authentication_username != "" and authentication_password != "" and username != "":
         try:
             instagram_bot.login(authentication_username, authentication_password)
         except:
@@ -179,8 +180,6 @@ def run_assessment():
                                    text="Error logging in. Please check your username and password. Leave these fields blank if you want to attempt to scan the account without any authentication.")
             error_label.pack(padx=10, pady=5)
             return
-
-    username = instagram_entry.get()
 
     if username != "":
         try:
