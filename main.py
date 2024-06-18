@@ -148,7 +148,7 @@ def add_current_grade():
     current_grades[subject] = float(grade) / 100
     current_grades_listbox.delete(0, tk.END)
     for subject in current_grades:
-        current_grades_listbox.insert(tk.END, f"{subject}: {current_grades[subject] * 100}%")
+        current_grades_listbox.insert(tk.END, f"{subject}: {round(current_grades[subject] * 100, 3)}%")
     current_grades_entry.delete(0, tk.END)
     current_grades_entry.focus_set()
 
