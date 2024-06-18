@@ -209,7 +209,7 @@ def run_assessment():
 
     if username != "":
         instagram_score_label = tk.Label(results_window,
-                                         text=f"Instagram Health Score: {round(instagram_assessment_results.overall_health_score, 3)}")
+                                         text=f"Instagram Positivity Score: {round(instagram_assessment_results.overall_health_score, 3)}")
         instagram_score_label.pack(padx=10)
         instagram_results_listbox = tk.Listbox(results_window)
         instagram_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
