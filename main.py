@@ -135,7 +135,7 @@ def add_previous_grade():
     previous_grades[subject] = float(grade) / 100
     previous_grades_listbox.delete(0, tk.END)
     for subject in previous_grades:
-        previous_grades_listbox.insert(tk.END, f"{subject}: {previous_grades[subject] * 100}%")
+        previous_grades_listbox.insert(tk.END, f"{subject}: {round(previous_grades[subject] * 100, 3)}%")
     previous_grades_entry.delete(0, tk.END)
     previous_grades_entry.focus_set()
 
