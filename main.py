@@ -35,7 +35,7 @@ def preprocess_text(text: str) -> str:
 def text_health_analysis(text: str) -> float:
     analyzer_text = preprocess_text(text)
 
-    health_score = 0
+    health_score = 0.0
 
     # Concerning words
     concerning_words = ['kill', 'die', 'death', 'hate', 'destroy', 'massacre',
@@ -44,14 +44,14 @@ def text_health_analysis(text: str) -> float:
 
     for word in analyzer_text.split(" "):
         # Subtract 1/3 if the word is negative --- polarity_scores(word)["neg"] returns 0 or 1
-        health_score -= sentiment_analyzer.polarity_scores(word)["neg"]
+        health_score -= sentiment_analyzer.polarity_scores(word)["neg"] / 3
 
         # Particularly concerning words get an additional penalty
         if word in concerning_words:
             health_score -= 0.5
 
-    # Incorporate the overall sentiment of the text
-    health_score += sentiment_analyzer.polarity_scores(analyzer_text)["compound"] * 2
+    # Incorporate the overall sentiment of the text as the most important factor
+    health_score += sentiment_analyzer.polarity_scores(analyzer_text)["compound"] * 3
 
     return health_score
 
@@ -71,7 +71,7 @@ class InstagramHealthAssessment:
 def instagram_health_assessment(username: str) -> InstagramHealthAssessment:
     profile = instaloader.Profile.from_username(instagram_bot.context, username)
 
-    health_score = 0
+    health_score = 0.0
     results = []
 
     # Bio
@@ -92,11 +92,21 @@ def instagram_health_assessment(username: str) -> InstagramHealthAssessment:
             health_score += current_health_score * recency_factor
         recency_factor /= 1.5
 
-    if len(results) == 0:
-        return InstagramHealthAssessment(0, [InstagramHealthAssessment.AssessmentResult("(ERROR) No information found.",
-                                                                                        datetime.datetime.now(), 0)])
+    if len(results) == 0 or (len(results) == 1 and results[0].caption.strip() == "(BIO)"):
+        return InstagramHealthAssessment(0.0,
+                                         [InstagramHealthAssessment.AssessmentResult(
+                                             "(WARNING) No information found. You may need to sign in to a friend's account to view private posts.",
+                                             datetime.datetime.now(), 0.0)])
 
-    return InstagramHealthAssessment(health_score / len(results), results)
+    if len(results) == 1:
+        results[
+            0].caption += " (WARNING) No posts found. This account may have private posts that can only be seen if you log in using a friend's account."
+
+    NORMALIZATION_FACTOR = 5  # Approximately normalize the score to the same scale as the grades (-1 to 1).
+
+    return InstagramHealthAssessment(health_score / (1 + ((((2 / 3) ** (len(results) - 1)) - 1) / ((2 / 3) - 1))) /
+                                     NORMALIZATION_FACTOR,
+                                     results)  # Use the geometric series formula because of the weighted average.
 
 
 @dataclasses.dataclass
@@ -111,7 +121,7 @@ class GradesHealthAssessment:
 
 
 def grades_health_assessment(grades: list) -> GradesHealthAssessment:
-    health_score = 0
+    health_score = 0.0
     results = []
 
     for subject in grades[1]:
@@ -121,7 +131,7 @@ def grades_health_assessment(grades: list) -> GradesHealthAssessment:
             health_score += difference
 
     if len(results) == 0:
-        return GradesHealthAssessment(0, results)
+        return GradesHealthAssessment(0.0, results)
 
     return GradesHealthAssessment(health_score / len(results), results)
 
@@ -188,14 +198,14 @@ def run_assessment():
         try:
             instagram_assessment_results = instagram_health_assessment(username)
         except:
-            instagram_assessment_results = InstagramHealthAssessment(0, [
+            instagram_assessment_results = InstagramHealthAssessment(0.0, [
                 InstagramHealthAssessment.AssessmentResult(
                     "(ERROR) No account found. Private accounts may not be accessible if you are not logged in. Additionally, Instagram may refuse to accept connections if you are not logged in.",
                     datetime.datetime.now(),
-                    0)])
+                    0.0)])
     else:
-        instagram_assessment_results = InstagramHealthAssessment(0, [
-            InstagramHealthAssessment.AssessmentResult("(ERROR) No account entered.", datetime.datetime.now(), 0)])
+        instagram_assessment_results = InstagramHealthAssessment(0.0, [
+            InstagramHealthAssessment.AssessmentResult("(ERROR) No account entered.", datetime.datetime.now(), 0.0)])
 
     grades_assessment_results = grades_health_assessment([previous_grades, current_grades])
 
