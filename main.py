@@ -102,7 +102,7 @@ def instagram_health_assessment(username: str) -> InstagramHealthAssessment:
         results[
             0].caption += " (WARNING) No posts found. This account may have private posts that can only be seen if you log in using a friend's account."
 
-    NORMALIZATION_FACTOR = 5  # Approximately normalize the score to the same scale as the grades (-1 to 1).
+    NORMALIZATION_FACTOR = 4  # Approximately normalize the score to the same scale as the grades (-1 to 1).
 
     return InstagramHealthAssessment(health_score / (1 + ((((2 / 3) ** (len(results) - 1)) - 1) / ((2 / 3) - 1))) /
                                      NORMALIZATION_FACTOR,
@@ -209,12 +209,30 @@ def run_assessment():
 
     grades_assessment_results = grades_health_assessment([previous_grades, current_grades])
 
-    mental_health = instagram_assessment_results.overall_health_score + grades_assessment_results.overall_health_score
+    if len(instagram_assessment_results.results) == 0 or (len(instagram_assessment_results.results) == 1 and
+                                                          (instagram_assessment_results.results[0].caption.startswith(
+                                                              "(WARNING)") or instagram_assessment_results.results[
+                                                               0].caption.startswith("(ERROR)"))):
+        mental_health = grades_assessment_results.overall_health_score
+    elif len(grades_assessment_results.results) == 0:
+        mental_health = instagram_assessment_results.overall_health_score
+    else:
+        mental_health = (instagram_assessment_results.overall_health_score +
+                         grades_assessment_results.overall_health_score) / 2
 
     results_window = tk.Toplevel()
     results_window.title("Results")
 
     results_label = tk.Label(results_window, text=f"Mental Health Level: {round(mental_health, 3)}")
+    if mental_health < -0.5:
+        results_label.config(fg="red")
+    elif mental_health < 0:
+        results_label.config(fg="orange")
+    elif 0 < mental_health <= 0.5:
+        results_label.config(fg="yellow")
+    else:
+        results_label.config(fg="green")
+
     results_label.pack(padx=10)
 
     hint_label = tk.Label(results_window,
@@ -226,6 +244,15 @@ def run_assessment():
         instagram_score_label = tk.Label(results_window,
                                          text=f"Instagram Positivity Score: {round(instagram_assessment_results.overall_health_score, 3)}")
         instagram_score_label.pack(padx=10)
+        if instagram_assessment_results.overall_health_score < -0.5:
+            instagram_score_label.config(fg="red")
+        elif instagram_assessment_results.overall_health_score < 0:
+            instagram_score_label.config(fg="orange")
+        elif 0 < instagram_assessment_results.overall_health_score <= 0.5:
+            instagram_score_label.config(fg="yellow")
+        else:
+            instagram_score_label.config(fg="green")
+
         instagram_results_listbox = tk.Listbox(results_window)
         instagram_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
         instagram_results_listbox.insert(tk.END,
@@ -241,6 +268,15 @@ def run_assessment():
         grades_score_label = tk.Label(results_window, text=f"Grade Improvement Score: "
                                                            f"{round(grades_assessment_results.overall_health_score, 3)}")
         grades_score_label.pack(padx=10)
+        if grades_assessment_results.overall_health_score < -0.5:
+            grades_score_label.config(fg="red")
+        elif grades_assessment_results.overall_health_score < 0:
+            grades_score_label.config(fg="orange")
+        elif 0 < grades_assessment_results.overall_health_score <= 0.5:
+            grades_score_label.config(fg="yellow")
+        else:
+            grades_score_label.config(fg="green")
+
         grades_results_listbox = tk.Listbox(results_window)
         grades_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
         for result in grades_assessment_results.results:
