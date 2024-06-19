@@ -39,17 +39,18 @@ def text_health_analysis(text: str) -> float:
 
     # Concerning words
     concerning_words = ['kill', 'die', 'death', 'hate', 'destroy', 'massacre',
-                        'slaughter', 'depression', 'depressed', 'sad', 'sadness', 'suicide', 'murder', 'hatred']
+                        'slaughter', 'depression', 'depressed', 'sad', 'sadness', 'suicide', 'murder', 'hatred',
+                        'booze', 'drunk', 'beer', 'lie', 'liar', 'killer', 'murderer']
 
-    for word in analyzer_text:
-        # Add a negative value if the word is negative
-        health_score -= sentiment_analyzer.polarity_scores(word)["neg"] / len(analyzer_text)
+    for word in analyzer_text.split(" "):
+        # Subtract 1/3 if the word is negative --- polarity_scores(word)["neg"] returns 0 or 1
+        health_score -= sentiment_analyzer.polarity_scores(word)["neg"]
 
         # Particularly concerning words get an additional penalty
         if word in concerning_words:
             health_score -= 0.5
 
-    # Sentiment analysis
+    # Incorporate the overall sentiment of the text
     health_score += sentiment_analyzer.polarity_scores(analyzer_text)["compound"] * 2
 
     return health_score
@@ -205,9 +206,11 @@ def run_assessment():
 
     results_label = tk.Label(results_window, text=f"Mental Health Level: {round(mental_health, 3)}")
     results_label.pack(padx=10)
+
     hint_label = tk.Label(results_window,
-                          text="The higher the number, the better the mental health. Slightly negative numbers are not unusual, but very negative numbers may indicate that the person needs help.")
+                          text="The higher the number, the better the mental health.\nDisclaimer: Negative numbers could be a sign of underlying issues, but they could also be indicative of a strong pessimistic outlook, which is not necessarily a health issue. Use this tool with judgement.")
     hint_label.pack(padx=10, pady=5)
+    hint_label.bind('<Configure>', lambda e: hint_label.config(wraplength=hint_label.winfo_width()))
 
     if username != "":
         instagram_score_label = tk.Label(results_window,
