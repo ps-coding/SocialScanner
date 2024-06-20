@@ -97,13 +97,13 @@ def instagram_health_assessment(username: str) -> InstagramHealthAssessment:
             full_text = post.caption
             current_health_score = text_health_analysis(full_text)
 
-            if analyze_images.get():
-                if abs(current_health_score) < 0.2:
-                    text_recognition = reader.readtext(post.url, detail=0, paragraph=True)
-                    full_text = " ".join(text_recognition) + " " + post.caption
-                    current_health_score = text_health_analysis(full_text)
-                    full_text = "<Scanned: " + " ".join(text_recognition) + "> " + post.caption
+            if analyze_images.get() and -0.2 < current_health_score < 0.2:
+                text_recognition = reader.readtext(post.url, detail=0, paragraph=True)
+                full_text = " ".join(text_recognition) + " " + post.caption
+                current_health_score = text_health_analysis(full_text)
+                full_text = "<Scanned: " + " ".join(text_recognition) + "> " + post.caption
 
+            if analyze_brightness.get():
                 image_request = urllib.request.urlopen(post.url)
                 image_array = np.asarray(bytearray(image_request.read()), dtype=np.uint8)
                 image = cv2.imdecode(image_array, 0)
@@ -118,7 +118,7 @@ def instagram_health_assessment(username: str) -> InstagramHealthAssessment:
             text_recognition = reader.readtext(post.url, detail=0, paragraph=True)
             full_text = " ".join(text_recognition)
             current_health_score = text_health_analysis(full_text)
-            full_text = "[Scanned: " + full_text + "]"
+            full_text = "<Scanned: " + full_text + ">"
 
             results.append(
                 InstagramHealthAssessment.AssessmentResult(full_text, post.date_utc, current_health_score))
@@ -301,7 +301,7 @@ def run_assessment():
     results_label.pack(padx=10)
 
     hint_label = tk.Label(results_window,
-                          text="The higher the number, the better the mental health.\nDisclaimer: Negative numbers could be a sign of underlying issues, but they could also be indicative of a strong pessimistic outlook, which is not necessarily a health issue. Use this tool with judgement.")
+                          text="The higher the number, the better the mental health.\nUse this tool with judgement.")
     hint_label.pack(padx=10, pady=5)
     hint_label.bind('<Configure>', lambda _: hint_label.config(wraplength=hint_label.winfo_width()))
 
@@ -359,6 +359,7 @@ def launch_mass_assessment():
     instagram_user_label.grid(row=0, column=0, padx=10, pady=5, sticky="e")
     instagram_user_entry = tk.Entry(mass_assessment_window)
     instagram_user_entry.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
+    instagram_user_entry.insert(0, instagram_entry.get())
 
     instagram_user_listbox = tk.Listbox(mass_assessment_window)
     instagram_user_listbox.grid(row=1, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
@@ -446,7 +447,7 @@ def launch_mass_assessment():
         results_label.pack(padx=10)
 
         hint_label = tk.Label(results_window,
-                              text="The higher the number, the better the mental health.\nDisclaimer: Negative numbers could be a sign of underlying issues, but they could also be indicative of a strong pessimistic outlook, which is not necessarily a health issue. Use this tool with judgement.")
+                              text="The higher the number, the better the mental health.\nUse this tool with judgement.")
         hint_label.pack(padx=10, pady=5)
         hint_label.bind('<Configure>', lambda _: hint_label.config(wraplength=hint_label.winfo_width()))
 
@@ -477,16 +478,23 @@ def launch_mass_assessment():
         for username in mass_assessment_instagram_accounts:
             threading.Thread(target=run_basic_health_assessment, args=(username,)).start()
 
+    analyze_brightness_mass_checkbox = tk.Checkbutton(mass_assessment_window, variable=analyze_brightness, onvalue=True,
+                                                      offvalue=False)
+    analyze_brightness_mass_checkbox.grid(row=4, column=0, pady=5, sticky="e")
+
+    analyze_brightness_mass_label = tk.Label(mass_assessment_window, text="Analyze Image Brightness (fast)")
+    analyze_brightness_mass_label.grid(row=4, column=1, pady=5, sticky="w")
+
     analyze_images_mass_checkbox = tk.Checkbutton(mass_assessment_window, variable=analyze_images, onvalue=True,
                                                   offvalue=False)
-    analyze_images_mass_checkbox.grid(row=4, column=0, pady=5, sticky="e")
+    analyze_images_mass_checkbox.grid(row=4, column=2, pady=5, sticky="e")
 
-    analyze_images_mass_label = tk.Label(mass_assessment_window, text="Analyze Images (could take longer)")
-    analyze_images_mass_label.grid(row=4, column=1, pady=5, sticky="w")
+    analyze_images_mass_label = tk.Label(mass_assessment_window, text="Analyze Image Text (could take longer)")
+    analyze_images_mass_label.grid(row=4, column=3, pady=5, sticky="w")
 
     run_mass_assessment_button = tk.Button(mass_assessment_window, text="Run Mass Assessment",
                                            command=run_mass_assessment)
-    run_mass_assessment_button.grid(row=4, column=2, columnspan=2, padx=10, pady=5, sticky="ew")
+    run_mass_assessment_button.grid(row=5, column=0, columnspan=4, padx=10, pady=5, sticky="ew")
 
     mass_assessment_window.rowconfigure(1, weight=1)
     mass_assessment_window.columnconfigure(0, weight=1)
@@ -541,18 +549,25 @@ password_label.grid(row=3, column=2, padx=10, pady=5, sticky="e")
 password_entry = tk.Entry(root, show="*")
 password_entry.grid(row=3, column=3, padx=10, pady=5, sticky="ew")
 
+analyze_brightness = tk.BooleanVar(value=True)
+analyze_brightness_checkbox = tk.Checkbutton(root, variable=analyze_brightness, onvalue=True, offvalue=False)
+analyze_brightness_checkbox.grid(row=4, column=0, pady=5, sticky="e")
+
+analyze_brightness_label = tk.Label(root, text="Analyze Image Brightness (fast)")
+analyze_brightness_label.grid(row=4, column=1, pady=5, sticky="w")
+
 analyze_images = tk.BooleanVar()
 analyze_images_checkbox = tk.Checkbutton(root, variable=analyze_images, onvalue=True, offvalue=False)
-analyze_images_checkbox.grid(row=4, column=0, pady=5, sticky="e")
+analyze_images_checkbox.grid(row=4, column=2, pady=5, sticky="e")
 
-analyze_images_label = tk.Label(root, text="Analyze Images (could take longer)")
-analyze_images_label.grid(row=4, column=1, pady=5, sticky="w")
+analyze_images_label = tk.Label(root, text="Analyze Image Text (could take longer)")
+analyze_images_label.grid(row=4, column=3, pady=5, sticky="w")
 
 submit_button = tk.Button(root, text="Run Individual Assessment", command=run_assessment)
-submit_button.grid(row=4, column=2, columnspan=2, padx=10, pady=5, sticky="ew")
+submit_button.grid(row=3, column=4, rowspan=2, columnspan=2, padx=10, pady=5, sticky="nesw")
 
 mass_assessment_button = tk.Button(root, text="Configure Mass Assessment", command=launch_mass_assessment)
-mass_assessment_button.grid(row=4, column=4, columnspan=2, padx=10, pady=5, sticky="ew")
+mass_assessment_button.grid(row=5, column=0, columnspan=6, padx=10, pady=5, sticky="ew")
 
 root.rowconfigure(2, weight=1)
 root.columnconfigure(1, weight=1)
