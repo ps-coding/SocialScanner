@@ -215,6 +215,10 @@ def run_assessment():
     authentication_password = password_entry.get()
     username = instagram_entry.get()
 
+    if username == "" and len(previous_grades) == 0 and len(current_grades) == 0:
+        messagebox.showwarning("No data entered.", "Please enter an Instagram account and/or grades.")
+        return
+
     if authentication_username != "" and authentication_password != "" and username != "":
         try:
             instagram_bot.login(authentication_username, authentication_password)
