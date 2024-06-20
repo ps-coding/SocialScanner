@@ -4,14 +4,18 @@ import datetime
 import itertools
 import threading
 import tkinter as tk
+import urllib
+import urllib.request
 from tkinter import messagebox
 
+import cv2
 import easyocr
 import instaloader
 import nltk
 import nltk.corpus
 import nltk.sentiment
 import nltk.tokenize
+import numpy as np
 
 sentiment_analyzer = nltk.sentiment.vader.SentimentIntensityAnalyzer()
 instagram_bot = instaloader.Instaloader()
@@ -90,26 +94,36 @@ def instagram_health_assessment(username: str) -> InstagramHealthAssessment:
     recency_factor = 1  # Decrease importance of older posts
     for post in itertools.islice(posts, 0, 20):
         if post.caption is not None:
-            current_health_score = text_health_analysis(post.caption)
+            full_text = post.caption
+            current_health_score = text_health_analysis(full_text)
 
-            if abs(current_health_score) < 0.2 and analyze_images.get():
-                text_recognition = reader.readtext(post.url, detail=0, paragraph=True)
-                full_text = " ".join(text_recognition) + " " + post.caption
-                current_health_score = text_health_analysis(full_text)
-                results.append(
-                    InstagramHealthAssessment.AssessmentResult(full_text, post.date_utc, current_health_score))
-            else:
-                results.append(
-                    InstagramHealthAssessment.AssessmentResult(post.caption, post.date_utc, current_health_score))
+            if analyze_images.get():
+                if abs(current_health_score) < 0.2:
+                    text_recognition = reader.readtext(post.url, detail=0, paragraph=True)
+                    full_text = " ".join(text_recognition) + " " + post.caption
+                    current_health_score = text_health_analysis(full_text)
+                    full_text = "<Scanned: " + " ".join(text_recognition) + "> " + post.caption
 
+                image_request = urllib.request.urlopen(post.url)
+                image_array = np.asarray(bytearray(image_request.read()), dtype=np.uint8)
+                image = cv2.imdecode(image_array, 0)
+                brightness_factor = (np.mean(image) - 100) / 255
+                current_health_score += brightness_factor
+                full_text = f"[Brightness: {round(brightness_factor, 3)}] " + full_text
+
+            results.append(
+                InstagramHealthAssessment.AssessmentResult(full_text, post.date_utc, current_health_score))
             health_score += current_health_score * recency_factor
         elif analyze_images.get():
             text_recognition = reader.readtext(post.url, detail=0, paragraph=True)
             full_text = " ".join(text_recognition)
             current_health_score = text_health_analysis(full_text)
+            full_text = "[Scanned: " + full_text + "]"
+
             results.append(
                 InstagramHealthAssessment.AssessmentResult(full_text, post.date_utc, current_health_score))
             health_score += current_health_score * recency_factor
+
         recency_factor /= 1.5
 
     if len(results) == 0 or (len(results) == 1 and results[0].caption.strip() == "(BIO)"):
