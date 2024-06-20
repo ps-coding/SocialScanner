@@ -89,19 +89,26 @@ def instagram_health_assessment(username: str) -> InstagramHealthAssessment:
 
     recency_factor = 1  # Decrease importance of older posts
     for post in itertools.islice(posts, 0, 20):
-        if recency_factor > 0.4 and analyze_images.get():
+        if post.caption is not None:
+            current_health_score = text_health_analysis(post.caption)
+
+            if abs(current_health_score) < 0.2 and analyze_images.get():
+                text_recognition = reader.readtext(post.url, detail=0, paragraph=True)
+                full_text = " ".join(text_recognition) + " " + post.caption
+                current_health_score = text_health_analysis(full_text)
+                results.append(
+                    InstagramHealthAssessment.AssessmentResult(full_text, post.date_utc, current_health_score))
+            else:
+                results.append(
+                    InstagramHealthAssessment.AssessmentResult(post.caption, post.date_utc, current_health_score))
+
+            health_score += current_health_score * recency_factor
+        elif analyze_images.get():
             text_recognition = reader.readtext(post.url, detail=0, paragraph=True)
             full_text = " ".join(text_recognition)
-            if post.caption is not None:
-                full_text += " " + post.caption
             current_health_score = text_health_analysis(full_text)
             results.append(
                 InstagramHealthAssessment.AssessmentResult(full_text, post.date_utc, current_health_score))
-            health_score += current_health_score * recency_factor
-        elif post.caption is not None:
-            current_health_score = text_health_analysis(post.caption)
-            results.append(
-                InstagramHealthAssessment.AssessmentResult(post.caption, post.date_utc, current_health_score))
             health_score += current_health_score * recency_factor
         recency_factor /= 1.5
 
@@ -244,7 +251,7 @@ def run_assessment():
         except:
             instagram_assessment_results = InstagramHealthAssessment(0.0, [
                 InstagramHealthAssessment.AssessmentResult(
-                    "(ERROR) No account found. Private accounts may not be accessible if you are not logged in. Additionally, Instagram may refuse to accept connections if you are not logged in.",
+                    "(ERROR) No account found. Instagram may refuse to accept connections if you are not logged in.",
                     datetime.datetime.now(),
                     0.0)])
     else:
@@ -403,7 +410,7 @@ def launch_mass_assessment():
         except:
             instagram_assessment_results = InstagramHealthAssessment(0.0, [
                 InstagramHealthAssessment.AssessmentResult(
-                    "(ERROR) No account found. Private accounts may not be accessible if you are not logged in. Additionally, Instagram may refuse to accept connections if you are not logged in.",
+                    "(ERROR) No account found. Instagram may refuse to accept connections if you are not logged in.",
                     datetime.datetime.now(),
                     0.0)])
 
@@ -460,7 +467,7 @@ def launch_mass_assessment():
                                                   offvalue=False)
     analyze_images_mass_checkbox.grid(row=4, column=0, pady=5, sticky="e")
 
-    analyze_images_mass_label = tk.Label(mass_assessment_window, text="Analyze Images (takes longer)")
+    analyze_images_mass_label = tk.Label(mass_assessment_window, text="Analyze Images (could take longer)")
     analyze_images_mass_label.grid(row=4, column=1, pady=5, sticky="w")
 
     run_mass_assessment_button = tk.Button(mass_assessment_window, text="Run Mass Assessment",
@@ -524,7 +531,7 @@ analyze_images = tk.BooleanVar()
 analyze_images_checkbox = tk.Checkbutton(root, variable=analyze_images, onvalue=True, offvalue=False)
 analyze_images_checkbox.grid(row=4, column=0, pady=5, sticky="e")
 
-analyze_images_label = tk.Label(root, text="Analyze Images (takes longer)")
+analyze_images_label = tk.Label(root, text="Analyze Images (could take longer)")
 analyze_images_label.grid(row=4, column=1, pady=5, sticky="w")
 
 submit_button = tk.Button(root, text="Run Individual Assessment", command=run_assessment)
