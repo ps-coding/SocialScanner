@@ -6,6 +6,7 @@ import threading
 import tkinter as tk
 from tkinter import messagebox
 
+import easyocr
 import instaloader
 import nltk
 import nltk.corpus
@@ -14,6 +15,7 @@ import nltk.tokenize
 
 sentiment_analyzer = nltk.sentiment.vader.SentimentIntensityAnalyzer()
 instagram_bot = instaloader.Instaloader()
+reader = easyocr.Reader(['en'])
 
 
 def preprocess_text(text: str) -> str:
@@ -87,7 +89,16 @@ def instagram_health_assessment(username: str) -> InstagramHealthAssessment:
 
     recency_factor = 1  # Decrease importance of older posts
     for post in itertools.islice(posts, 0, 20):
-        if post.caption is not None:
+        if recency_factor > 0.4 and analyze_images.get():
+            text_recognition = reader.readtext(post.url, detail=0, paragraph=True)
+            full_text = " ".join(text_recognition)
+            if post.caption is not None:
+                full_text += " " + post.caption
+            current_health_score = text_health_analysis(full_text)
+            results.append(
+                InstagramHealthAssessment.AssessmentResult(full_text, post.date_utc, current_health_score))
+            health_score += current_health_score * recency_factor
+        elif post.caption is not None:
             current_health_score = text_health_analysis(post.caption)
             results.append(
                 InstagramHealthAssessment.AssessmentResult(post.caption, post.date_utc, current_health_score))
@@ -445,9 +456,16 @@ def launch_mass_assessment():
         for username in mass_assessment_instagram_accounts:
             threading.Thread(target=run_basic_health_assessment, args=(username,)).start()
 
+    analyze_images_mass_checkbox = tk.Checkbutton(mass_assessment_window, variable=analyze_images, onvalue=True,
+                                                  offvalue=False)
+    analyze_images_mass_checkbox.grid(row=4, column=0, pady=5, sticky="e")
+
+    analyze_images_mass_label = tk.Label(mass_assessment_window, text="Analyze Images (takes longer)")
+    analyze_images_mass_label.grid(row=4, column=1, pady=5, sticky="w")
+
     run_mass_assessment_button = tk.Button(mass_assessment_window, text="Run Mass Assessment",
                                            command=run_mass_assessment)
-    run_mass_assessment_button.grid(row=4, column=0, columnspan=4, padx=10, pady=5, sticky="ew")
+    run_mass_assessment_button.grid(row=4, column=2, columnspan=2, padx=10, pady=5, sticky="ew")
 
     mass_assessment_window.rowconfigure(1, weight=1)
     mass_assessment_window.columnconfigure(0, weight=1)
@@ -502,10 +520,17 @@ password_label.grid(row=3, column=2, padx=10, pady=5, sticky="e")
 password_entry = tk.Entry(root, show="*")
 password_entry.grid(row=3, column=3, padx=10, pady=5, sticky="ew")
 
-submit_button = tk.Button(root, text="Submit", command=run_assessment)
-submit_button.grid(row=4, column=0, columnspan=4, padx=10, pady=5, sticky="ew")
+analyze_images = tk.BooleanVar()
+analyze_images_checkbox = tk.Checkbutton(root, variable=analyze_images, onvalue=True, offvalue=False)
+analyze_images_checkbox.grid(row=4, column=0, pady=5, sticky="e")
 
-mass_assessment_button = tk.Button(root, text="Mass Assessment", command=launch_mass_assessment)
+analyze_images_label = tk.Label(root, text="Analyze Images (takes longer)")
+analyze_images_label.grid(row=4, column=1, pady=5, sticky="w")
+
+submit_button = tk.Button(root, text="Run Individual Assessment", command=run_assessment)
+submit_button.grid(row=4, column=2, columnspan=2, padx=10, pady=5, sticky="ew")
+
+mass_assessment_button = tk.Button(root, text="Configure Mass Assessment", command=launch_mass_assessment)
 mass_assessment_button.grid(row=4, column=4, columnspan=2, padx=10, pady=5, sticky="ew")
 
 root.rowconfigure(2, weight=1)
