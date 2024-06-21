@@ -48,11 +48,14 @@ def text_health_analysis(text: str) -> float:
     # Concerning words
     concerning_words = ['kill', 'die', 'death', 'hate', 'destroy', 'massacre',
                         'slaughter', 'depression', 'depressed', 'sad', 'sadness', 'suicide', 'murder', 'hatred',
-                        'booze', 'drunk', 'beer', 'lie', 'liar', 'killer', 'murderer']
+                        'booze', 'drunk', 'beer', 'lie', 'liar', 'killer', 'murderer', 'bomb', 'shoot', 'bombing',
+                        'shooting']
 
+    # Highlight negative words, ignoring positive words
     for word in analyzer_text.split(" "):
-        # Subtract 1/3 if the word is negative --- polarity_scores(word)["neg"] returns 0 or 1
-        health_score -= sentiment_analyzer.polarity_scores(word)["neg"] / 3
+        word_score = sentiment_analyzer.polarity_scores(word)
+        if word_score["neg"] == 1:
+            health_score += sentiment_analyzer.polarity_scores(word)["neg"] / 2
 
         # Particularly concerning words get an additional penalty
         if word in concerning_words:
@@ -363,24 +366,46 @@ def run_assessment():
 def launch_raw_text_assessment():
     raw_text_window = tk.Toplevel()
     raw_text_window.title("Raw Text Assessment")
-    raw_text_window.config(bg="#1f1e1b")
 
+    text_box = tk.Text(raw_text_window, height=10, width=40, wrap=tk.WORD)
+    text_box.grid(row=0, column=0, padx=10, pady=10)
 
-    text_output = text_box.get("1.0", tk.END).strip()
-    results = text_health_analysis(text_output)
+    result_label = tk.Label(raw_text_window, text="Type something to see the results.")
+    result_label.grid(row=0, column=1, padx=10, pady=5, sticky="e")
 
+    def update_results():
+        text_output = text_box.get("1.0", tk.END).strip()
 
-    title = tk.Label(raw_text_window, text="Results:")
-    title.grid(row=0, column=0, padx=10, pady=5, sticky="e")
-    result_label = tk.Label(raw_text_window, text=results)
-    result_label.grid(row=1, column=0, padx=10, pady=5, sticky="e")
+        if text_output == "":
+            result_label.config(text="Type something to see the results.", fg="gray")
+            return
 
+        if len(text_output) < 10:
+            result_label.config(text="Type more to see the results.", fg="gray")
+            return
+
+        results = text_health_analysis(text_output) / 4
+        result_label.config(text=results, fg="gray")
+
+        if results < -0.5:
+            result_label.config(fg="red")
+        elif results < 0:
+            result_label.config(fg="orange")
+        elif 0 < results <= 0.5:
+            result_label.config(fg="yellow")
+        elif results > 0.5:
+            result_label.config(fg="green")
+        else:
+            result_label.config(fg="gray")
+
+    text_box.bind("<Key>", (lambda _: update_results()))
+    text_box.bind("<Return>", (lambda _: update_results()))
+    text_box.bind("<BackSpace>", (lambda _: update_results()))
 
 
 def launch_mass_assessment():
     mass_assessment_window = tk.Toplevel()
     mass_assessment_window.title("Mass Assessment")
-    mass_assessment_window.config(bg="#1f1e1b")
 
     instagram_user_label = tk.Label(mass_assessment_window, text="Enter Instagram Username")
     instagram_user_label.grid(row=0, column=0, padx=10, pady=5, sticky="e")
@@ -425,15 +450,15 @@ def launch_mass_assessment():
 
     instagram_user_entry.bind("<Return>", (lambda _: add_instagram_user()))
 
-    add_instagram_user_button = tk.Button(mass_assessment_window, text="Add Instagram User", command=add_instagram_user, bg="cyan", fg="black")
+    add_instagram_user_button = tk.Button(mass_assessment_window, text="Add Instagram User", command=add_instagram_user)
     add_instagram_user_button.grid(row=0, column=2, padx=10, pady=5, sticky="ew")
 
     remove_instagram_user_button = tk.Button(mass_assessment_window, text="Remove Instagram User",
-                                             command=remove_instagram_user, bg="cyan", fg="black")
+                                             command=remove_instagram_user)
     remove_instagram_user_button.grid(row=1, column=2, padx=10, pady=5, sticky="ew")
 
     clear_instagram_users_button = tk.Button(mass_assessment_window, text="Clear Instagram Users",
-                                             command=clear_instagram_users, bg="cyan", fg="black")
+                                             command=clear_instagram_users)
     clear_instagram_users_button.grid(row=2, column=2, padx=10, pady=5, sticky="ew")
 
     instagram_username_label = tk.Label(mass_assessment_window, text="Your Instagram Username")
@@ -460,7 +485,6 @@ def launch_mass_assessment():
 
         results_window = tk.Toplevel()
         results_window.title(f"Results for {username}")
-        results_window.config(bg="#1f1e1b")
 
         results_label = tk.Label(results_window, text=f"{username}'s Mental Health Level: {round(mental_health, 3)}")
         if mental_health < -0.5:
@@ -521,7 +545,7 @@ def launch_mass_assessment():
     analyze_images_mass_label.grid(row=4, column=3, pady=5, sticky="w")
 
     run_mass_assessment_button = tk.Button(mass_assessment_window, text="Run Mass Assessment",
-                                           command=run_mass_assessment, bg="cyan", fg="black", activebackground="white")
+                                           command=run_mass_assessment)
     run_mass_assessment_button.grid(row=5, column=0, columnspan=4, padx=10, pady=5, sticky="ew")
 
     mass_assessment_window.rowconfigure(1, weight=1)
@@ -531,7 +555,6 @@ def launch_mass_assessment():
 
 root = tk.Tk()
 root.title("Mental Health Assessment")
-root.config(bg="#1f1e1b")
 
 instagram_entry_label = tk.Label(root, text="Enter Instagram Username")
 instagram_entry_label.grid(row=0, column=0, padx=10, pady=5, sticky="e")
@@ -543,9 +566,9 @@ previous_grades_entry_label.grid(row=1, column=0, padx=10, pady=5, sticky="e")
 previous_grades_entry = tk.Entry(root)
 previous_grades_entry.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
 previous_grades_entry.bind("<Return>", (lambda _: add_previous_grade()))
-previous_grades_add_button = tk.Button(root, text="Add Grade", command=add_previous_grade, bg="cyan", fg="black", activebackground="white")
+previous_grades_add_button = tk.Button(root, text="Add Grade", command=add_previous_grade)
 previous_grades_add_button.grid(row=1, column=2, padx=10, pady=5, sticky="ew")
-previous_grades_clear_button = tk.Button(root, text="Clear Grades", command=clear_previous_grades, bg="cyan", fg="black", activebackground="white")
+previous_grades_clear_button = tk.Button(root, text="Clear Grades", command=clear_previous_grades)
 previous_grades_clear_button.grid(row=2, column=2, padx=10, pady=5, sticky="ew")
 
 previous_grades_listbox_label = tk.Label(root, text="Previous Grades:")
@@ -558,9 +581,9 @@ current_grades_entry_label.grid(row=1, column=3, padx=10, pady=5, sticky="e")
 current_grades_entry = tk.Entry(root)
 current_grades_entry.grid(row=1, column=4, padx=10, pady=5, sticky="ew")
 current_grades_entry.bind("<Return>", (lambda _: add_current_grade()))
-current_grades_add_button = tk.Button(root, text="Add Grade", command=add_current_grade, bg="cyan", fg="black", activebackground="white")
+current_grades_add_button = tk.Button(root, text="Add Grade", command=add_current_grade)
 current_grades_add_button.grid(row=1, column=5, padx=10, pady=5, sticky="ew")
-current_grades_clear_button = tk.Button(root, text="Clear Grades", command=clear_current_grades, bg="cyan", fg="black", activebackground="white")
+current_grades_clear_button = tk.Button(root, text="Clear Grades", command=clear_current_grades)
 current_grades_clear_button.grid(row=2, column=5, padx=10, pady=5, sticky="ew")
 
 current_grades_listbox_label = tk.Label(root, text="Current Grades:")
@@ -592,18 +615,14 @@ analyze_images_checkbox.grid(row=4, column=2, pady=5, sticky="e")
 analyze_images_label = tk.Label(root, text="Analyze Image Text (could take longer)")
 analyze_images_label.grid(row=4, column=3, pady=5, sticky="w")
 
-submit_button = tk.Button(root, text="Run Individual Assessment", command=run_assessment, bg="cyan", fg="black", activebackground="white")
+submit_button = tk.Button(root, text="Run Individual Assessment", command=run_assessment)
 submit_button.grid(row=3, column=4, rowspan=2, columnspan=2, padx=10, pady=5, sticky="nesw")
 
-mass_assessment_button = tk.Button(root, text="Configure Mass Assessment", command=launch_mass_assessment, bg="cyan", fg="black", activebackground="white")
+mass_assessment_button = tk.Button(root, text="Configure Mass Assessment", command=launch_mass_assessment)
 mass_assessment_button.grid(row=5, column=0, columnspan=6, padx=10, pady=5, sticky="ew")
 
 raw_assessment_button = tk.Button(root, text="Raw Text Calculation", command=launch_raw_text_assessment)
 raw_assessment_button.grid(row=6, column=0, columnspan=6, padx=10, pady=10, sticky="ew")
-
-
-text_box = tk.Text(root, height=10, width=40)
-text_box.grid(row=7, column=2, padx=10, pady=10)
 
 root.rowconfigure(2, weight=1)
 root.columnconfigure(1, weight=1)
