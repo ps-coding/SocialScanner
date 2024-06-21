@@ -251,12 +251,21 @@ def run_assessment():
         messagebox.showwarning("No data entered.", "Please enter an Instagram account and/or grades.")
         return
 
+    if authentication_username != "" and authentication_password == "" and username != "":
+        try:
+            instagram_bot.load_session_from_file(authentication_username)
+        except:
+            messagebox.showwarning("Error loading session.",
+                                   "The session file for this username could not be found. Please log in again or leave the authentication fields blank.")
+            return
+
     if authentication_username != "" and authentication_password != "" and username != "":
         try:
             instagram_bot.login(authentication_username, authentication_password)
+            instagram_bot.save_session_to_file()
         except:
             messagebox.showwarning("Error logging in.",
-                                   "Please check your username and password. Leave these fields blank if you want to attempt to scan the account without any authentication.")
+                                   "Please check your username and password. Leave these fields blank if you want to attempt to scan the account without any authentication. Leave the password field blank if you have logged in before.")
             return
 
     if username != "":
