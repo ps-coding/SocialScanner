@@ -351,6 +351,23 @@ def run_assessment():
         grades_score_label.pack(padx=10, pady=5)
 
 
+def launch_raw_text_assessment():
+    raw_text_window = tk.Toplevel()
+    raw_text_window.title("Raw Text Assessment")
+    raw_text_window.config(bg="#1f1e1b")
+
+
+    text_output = text_box.get("1.0", tk.END).strip()
+    results = text_health_analysis(text_output)
+
+
+    title = tk.Label(raw_text_window, text="Results:")
+    title.grid(row=0, column=0, padx=10, pady=5, sticky="e")
+    result_label = tk.Label(raw_text_window, text=results)
+    result_label.grid(row=1, column=0, padx=10, pady=5, sticky="e")
+
+
+
 def launch_mass_assessment():
     mass_assessment_window = tk.Toplevel()
     mass_assessment_window.title("Mass Assessment")
@@ -571,6 +588,13 @@ submit_button.grid(row=3, column=4, rowspan=2, columnspan=2, padx=10, pady=5, st
 
 mass_assessment_button = tk.Button(root, text="Configure Mass Assessment", command=launch_mass_assessment, bg="cyan", fg="black", activebackground="white")
 mass_assessment_button.grid(row=5, column=0, columnspan=6, padx=10, pady=5, sticky="ew")
+
+raw_assessment_button = tk.Button(root, text="Raw Text Calculation", command=launch_raw_text_assessment)
+raw_assessment_button.grid(row=6, column=0, columnspan=6, padx=10, pady=10, sticky="ew")
+
+
+text_box = tk.Text(root, height=10, width=40)
+text_box.grid(row=7, column=2, padx=10, pady=10)
 
 root.rowconfigure(2, weight=1)
 root.columnconfigure(1, weight=1)
