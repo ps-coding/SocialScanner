@@ -628,4 +628,5 @@ root.rowconfigure(2, weight=1)
 root.columnconfigure(1, weight=1)
 root.columnconfigure(4, weight=1)
 
-root.mainloop()
+if __name__ == '__main__':
+    root.mainloop()
