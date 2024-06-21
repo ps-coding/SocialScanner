@@ -1,4 +1,3 @@
-#  Copyright (c) 2024 Prasham Shah. All rights reserved.
 import dataclasses
 import datetime
 import itertools

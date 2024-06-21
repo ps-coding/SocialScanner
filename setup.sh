@@ -1,7 +1,3 @@
-#
-# Copyright (c) 2024 Prasham Shah. All rights reserved.
-#
-
 # Install the right version of pytorch depending on your system (see https://pytorch.org/get-started/locally)
 # Uncomment the appropriate line
 # Linux/Windows with CUDA 12.1:
