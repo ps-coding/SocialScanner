@@ -55,7 +55,7 @@ def text_health_analysis(text: str) -> float:
     for word in analyzer_text.split(" "):
         word_score = sentiment_analyzer.polarity_scores(word)
         if word_score["neg"] == 1:
-            health_score += sentiment_analyzer.polarity_scores(word)["neg"] / 2
+            health_score += sentiment_analyzer.polarity_scores(word)["compound"] / 1.5
 
         # Particularly concerning words get an additional penalty
         if word in concerning_words:
