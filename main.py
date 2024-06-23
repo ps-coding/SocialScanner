@@ -48,7 +48,7 @@ def text_health_analysis(text: str) -> float:
     concerning_words = ['kill', 'die', 'death', 'hate', 'destroy', 'massacre',
                         'slaughter', 'depression', 'depressed', 'sad', 'sadness', 'suicide', 'murder', 'hatred',
                         'booze', 'drunk', 'beer', 'lie', 'liar', 'killer', 'murderer', 'bomb', 'shoot', 'bombing',
-                        'shooting']
+                        'shooting', 'shooter']
 
     # Highlight negative words, ignoring positive words
     for word in analyzer_text.split(" "):
