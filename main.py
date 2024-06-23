@@ -6,6 +6,7 @@ import tkinter as tk
 import urllib
 import urllib.request
 from tkinter import messagebox
+from tkinter import filedialog
 
 import cv2
 import easyocr
@@ -447,10 +448,28 @@ def launch_mass_assessment():
         mass_assessment_instagram_accounts.clear()
         instagram_user_listbox.delete(0, tk.END)
 
+    def import_list():
+        list_file = filedialog.askopenfilename()
+        try:
+            file = open(list_file, "r")
+        except:
+            messagebox.showwarning("Invalid file.", "File could not be loaded.")
+            return
+
+        with file:
+            for line in file:
+                mass_assessment_instagram_accounts.add(line.strip())
+
+        for user in mass_assessment_instagram_accounts:
+            instagram_user_listbox.insert(tk.END, user)
+
     instagram_user_entry.bind("<Return>", (lambda _: add_instagram_user()))
 
     add_instagram_user_button = tk.Button(mass_assessment_window, text="Add Instagram User", command=add_instagram_user)
     add_instagram_user_button.grid(row=0, column=2, padx=10, pady=5, sticky="ew")
+
+    import_list_button = tk.Button(mass_assessment_window, text="Import List", command=import_list)
+    import_list_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
 
     remove_instagram_user_button = tk.Button(mass_assessment_window, text="Remove Instagram User",
                                              command=remove_instagram_user)
