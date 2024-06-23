@@ -460,6 +460,7 @@ def launch_mass_assessment():
             for line in file:
                 mass_assessment_instagram_accounts.add(line.strip())
 
+        instagram_user_listbox.delete(0, tk.END)
         for user in mass_assessment_instagram_accounts:
             instagram_user_listbox.insert(tk.END, user)
 
