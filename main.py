@@ -383,7 +383,7 @@ def launch_raw_text_assessment():
             result_label.config(text="Type more to see the results.", fg="gray")
             return
 
-        results = text_health_analysis(text_output) / 4
+        results = round(text_health_analysis(text_output) / 4, 3)
         result_label.config(text=results, fg="gray")
 
         if results < -0.5:
