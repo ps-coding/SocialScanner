@@ -368,10 +368,10 @@ def launch_raw_text_assessment():
     raw_text_window.title("Raw Text Assessment")
 
     text_box = tk.Text(raw_text_window, height=10, width=40, wrap=tk.WORD)
-    text_box.grid(row=0, column=0, padx=10, pady=10)
+    text_box.grid(row=0, column=0, padx=10, pady=10, sticky="nesw")
 
     result_label = tk.Label(raw_text_window, text="Type something to see the results.")
-    result_label.grid(row=0, column=1, padx=10, pady=5, sticky="e")
+    result_label.grid(row=0, column=1, padx=10, pady=5, sticky="w")
 
     def update_results():
         text_output = text_box.get("1.0", tk.END).strip()
@@ -401,6 +401,9 @@ def launch_raw_text_assessment():
     text_box.bind("<Key>", (lambda _: update_results()))
     text_box.bind("<Return>", (lambda _: update_results()))
     text_box.bind("<BackSpace>", (lambda _: update_results()))
+
+    raw_text_window.rowconfigure(0, weight=1)
+    raw_text_window.columnconfigure(0, weight=1)
 
 
 def launch_mass_assessment():
