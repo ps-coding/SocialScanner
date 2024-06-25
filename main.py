@@ -787,12 +787,12 @@ def launch_mass_assessment():
     analyze_brightness_mass_checkbox = tk.Checkbutton(mass_assessment_window, text="Analyze Image Brightness (fast)",
                                                       variable=analyze_brightness, onvalue=True,
                                                       offvalue=False)
-    analyze_brightness_mass_checkbox.grid(row=5, column=0, columnspan=3, pady=5, sticky="e")
+    analyze_brightness_mass_checkbox.grid(row=5, column=0, columnspan=3, pady=5)
 
     analyze_images_mass_checkbox = tk.Checkbutton(mass_assessment_window, text="Analyze Image Text (could take longer)",
                                                   variable=analyze_images, onvalue=True,
                                                   offvalue=False)
-    analyze_images_mass_checkbox.grid(row=5, column=3, columnspan=3, pady=5, sticky="e")
+    analyze_images_mass_checkbox.grid(row=5, column=3, columnspan=3, pady=5)
 
     run_mass_assessment_button = tk.Button(mass_assessment_window, text="Run Mass Assessment",
                                            command=run_mass_assessment)
