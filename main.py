@@ -552,19 +552,13 @@ def launch_mass_assessment():
         for username in mass_assessment_instagram_accounts:
             threading.Thread(target=run_basic_health_assessment, args=(username,)).start()
 
-    analyze_brightness_mass_checkbox = tk.Checkbutton(mass_assessment_window, variable=analyze_brightness, onvalue=True,
+    analyze_brightness_mass_checkbox = tk.Checkbutton(mass_assessment_window, text="Analyze Image Brightness (fast)", variable=analyze_brightness, onvalue=True,
                                                       offvalue=False)
-    analyze_brightness_mass_checkbox.grid(row=4, column=0, pady=5, sticky="e")
+    analyze_brightness_mass_checkbox.grid(row=4, column=0, columnspan=2, pady=5, sticky="e")
 
-    analyze_brightness_mass_label = tk.Label(mass_assessment_window, text="Analyze Image Brightness (fast)")
-    analyze_brightness_mass_label.grid(row=4, column=1, pady=5, sticky="w")
-
-    analyze_images_mass_checkbox = tk.Checkbutton(mass_assessment_window, variable=analyze_images, onvalue=True,
+    analyze_images_mass_checkbox = tk.Checkbutton(mass_assessment_window, text="Analyze Image Text (could take longer)", variable=analyze_images, onvalue=True,
                                                   offvalue=False)
-    analyze_images_mass_checkbox.grid(row=4, column=2, pady=5, sticky="e")
-
-    analyze_images_mass_label = tk.Label(mass_assessment_window, text="Analyze Image Text (could take longer)")
-    analyze_images_mass_label.grid(row=4, column=3, pady=5, sticky="w")
+    analyze_images_mass_checkbox.grid(row=4, column=2, columnspan=2, pady=5, sticky="e")
 
     run_mass_assessment_button = tk.Button(mass_assessment_window, text="Run Mass Assessment",
                                            command=run_mass_assessment)
@@ -624,18 +618,12 @@ password_entry = tk.Entry(root, show="*")
 password_entry.grid(row=3, column=3, padx=10, pady=5, sticky="ew")
 
 analyze_brightness = tk.BooleanVar(value=True)
-analyze_brightness_checkbox = tk.Checkbutton(root, variable=analyze_brightness, onvalue=True, offvalue=False)
-analyze_brightness_checkbox.grid(row=4, column=0, pady=5, sticky="e")
-
-analyze_brightness_label = tk.Label(root, text="Analyze Image Brightness (fast)")
-analyze_brightness_label.grid(row=4, column=1, pady=5, sticky="w")
+analyze_brightness_checkbox = tk.Checkbutton(root, text="Analyze Image Brightness (fast)", variable=analyze_brightness, onvalue=True, offvalue=False)
+analyze_brightness_checkbox.grid(row=4, column=0, columnspan=2, pady=5, sticky="e")
 
 analyze_images = tk.BooleanVar()
-analyze_images_checkbox = tk.Checkbutton(root, variable=analyze_images, onvalue=True, offvalue=False)
-analyze_images_checkbox.grid(row=4, column=2, pady=5, sticky="e")
-
-analyze_images_label = tk.Label(root, text="Analyze Image Text (could take longer)")
-analyze_images_label.grid(row=4, column=3, pady=5, sticky="w")
+analyze_images_checkbox = tk.Checkbutton(root, text="Analyze Image Text (could take longer)", variable=analyze_images, onvalue=True, offvalue=False)
+analyze_images_checkbox.grid(row=4, column=2, columnspan=2, pady=5, sticky="e")
 
 submit_button = tk.Button(root, text="Run Individual Assessment", command=run_assessment)
 submit_button.grid(row=3, column=4, rowspan=2, columnspan=2, padx=10, pady=5, sticky="nesw")
