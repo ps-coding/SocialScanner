@@ -5,8 +5,8 @@ import threading
 import tkinter as tk
 import urllib
 import urllib.request
-from tkinter import messagebox
 from tkinter import filedialog
+from tkinter import messagebox
 
 import cv2
 import easyocr
@@ -177,6 +177,7 @@ previous_grades = {}
 current_grades = {}
 
 mass_assessment_instagram_accounts = set()
+mass_assessment_grades = {}
 
 
 def add_previous_grade():
@@ -248,7 +249,9 @@ def clear_current_grades():
 def run_assessment():
     authentication_username = username_entry.get()
     authentication_password = password_entry.get()
-    username = instagram_entry.get()
+    username = instagram_entry.get().strip().lower()
+    instagram_entry.delete(0, tk.END)
+    instagram_entry.insert(0, username)
 
     if username == "" and len(previous_grades) == 0 and len(current_grades) == 0:
         messagebox.showwarning("No data entered.", "Please enter an Instagram account and/or grades.")
@@ -422,13 +425,14 @@ def launch_mass_assessment():
         instagram_user_listbox.insert(tk.END, user)
 
     def add_instagram_user():
-        instagram_user = instagram_user_entry.get()
+        instagram_user = instagram_user_entry.get().strip().lower()
 
         if instagram_user == "":
             messagebox.showwarning("Empty field.", "Please enter an Instagram account.")
             return
 
         mass_assessment_instagram_accounts.add(instagram_user)
+        mass_assessment_grades[instagram_user] = [{}, {}]
 
         instagram_user_listbox.delete(0, tk.END)
         for user in mass_assessment_instagram_accounts:
@@ -436,10 +440,14 @@ def launch_mass_assessment():
 
         instagram_user_entry.delete(0, tk.END)
 
+        user_previous_grades_listbox.delete(0, tk.END)
+        user_current_grades_listbox.delete(0, tk.END)
+
     def remove_instagram_user():
         selected_index = instagram_user_listbox.curselection()
         if selected_index:
             mass_assessment_instagram_accounts.remove(instagram_user_listbox.get(selected_index))
+            mass_assessment_grades.pop(instagram_user_listbox.get(selected_index), None)
 
             instagram_user_listbox.delete(0, tk.END)
             for user in mass_assessment_instagram_accounts:
@@ -447,9 +455,16 @@ def launch_mass_assessment():
         else:
             messagebox.showwarning("Nothing selected.", "Please select an account to remove.")
 
+        user_previous_grades_listbox.delete(0, tk.END)
+        user_current_grades_listbox.delete(0, tk.END)
+
     def clear_instagram_users():
         mass_assessment_instagram_accounts.clear()
+        mass_assessment_grades.clear()
+
         instagram_user_listbox.delete(0, tk.END)
+        user_previous_grades_listbox.delete(0, tk.END)
+        user_current_grades_listbox.delete(0, tk.END)
 
     def import_list():
         list_file = filedialog.askopenfilename()
@@ -461,11 +476,36 @@ def launch_mass_assessment():
 
         with file:
             for line in file:
-                mass_assessment_instagram_accounts.add(line.strip())
+                if line.strip() == "":
+                    continue
+
+                try:
+                    account, grades = line.split(":")
+                    mass_assessment_instagram_accounts.add(account.strip().lower())
+                    try:
+                        mass_assessment_grades[account.strip().lower()] = [{}, {}]
+                        previous, current = grades.split(";")
+                        for subject in previous.split(","):
+                            subject, grade = subject.split("=")
+                            mass_assessment_grades[account.strip().lower()][0][subject.strip().lower()] = float(
+                                grade.strip()) / 100
+                        for subject in current.split(","):
+                            subject, grade = subject.split("=")
+                            mass_assessment_grades[account.strip().lower()][1][subject.strip().lower()] = float(
+                                grade.strip()) / 100
+                    except:
+                        mass_assessment_grades.pop(account.strip().lower(), None)
+                        mass_assessment_grades[account.strip().lower()] = [{}, {}]
+                except:
+                    mass_assessment_instagram_accounts.add(line.strip().lower())
+                    mass_assessment_grades[line.strip().lower()] = [{}, {}]
 
         instagram_user_listbox.delete(0, tk.END)
         for user in mass_assessment_instagram_accounts:
             instagram_user_listbox.insert(tk.END, user)
+
+        user_previous_grades_listbox.delete(0, tk.END)
+        user_current_grades_listbox.delete(0, tk.END)
 
     instagram_user_entry.bind("<Return>", (lambda _: add_instagram_user()))
 
@@ -481,17 +521,156 @@ def launch_mass_assessment():
 
     clear_instagram_users_button = tk.Button(mass_assessment_window, text="Clear Instagram Users",
                                              command=clear_instagram_users)
-    clear_instagram_users_button.grid(row=2, column=2, padx=10, pady=5, sticky="ew")
+    clear_instagram_users_button.grid(row=1, column=3, padx=10, pady=5, sticky="ew")
+
+    user_previous_grades_listbox_label = tk.Label(mass_assessment_window, text="Previous Grades:")
+    user_previous_grades_listbox_label.grid(row=3, column=0, padx=10, pady=5, sticky="ne")
+
+    user_previous_grades_listbox = tk.Listbox(mass_assessment_window)
+    user_previous_grades_listbox.grid(row=3, column=1, padx=10, pady=5, sticky="nsew")
+
+    user_current_grades_listbox_label = tk.Label(mass_assessment_window, text="Current Grades:")
+    user_current_grades_listbox_label.grid(row=3, column=3, padx=10, pady=5, sticky="ne")
+
+    user_current_grades_listbox = tk.Listbox(mass_assessment_window)
+    user_current_grades_listbox.grid(row=3, column=4, padx=10, pady=5, sticky="nsew")
+
+    def update_user_grades(e):
+        selected_index = instagram_user_listbox.curselection()
+        if selected_index:
+            selected_user = instagram_user_listbox.get(selected_index)
+            user_previous_grades_listbox.delete(0, tk.END)
+            user_current_grades_listbox.delete(0, tk.END)
+            try:
+                for subject in mass_assessment_grades[selected_user][0]:
+                    user_previous_grades_listbox.insert(tk.END,
+                                                        f"{subject}: {round(mass_assessment_grades[selected_user][0][subject] * 100, 3)}%")
+                for subject in mass_assessment_grades[selected_user][1]:
+                    user_current_grades_listbox.insert(tk.END,
+                                                       f"{subject}: {round(mass_assessment_grades[selected_user][1][subject] * 100, 3)}%")
+            except:
+                mass_assessment_grades[selected_user] = [{}, {}]
+                user_previous_grades_listbox.delete(0, tk.END)
+                user_current_grades_listbox.delete(0, tk.END)
+        else:
+            user_previous_grades_listbox.delete(0, tk.END)
+            user_current_grades_listbox.delete(0, tk.END)
+
+    def add_previous_grade():
+        selected_index = instagram_user_listbox.curselection()
+        if selected_index:
+            selected_user = instagram_user_listbox.get(selected_index)
+
+            try:
+                subject, grade = previous_grades_entry.get().split(":")
+            except:
+                messagebox.showwarning("Invalid format.", "Please enter a subject and grade separated by a colon.")
+                return
+
+            subject = subject.strip().lower()
+            grade = grade.strip()
+
+            try:
+                mass_assessment_grades[selected_user][0][subject] = float(grade) / 100
+            except:
+                messagebox.showwarning("Invalid grade.",
+                                       "Please enter a valid grade as a number without any special characters.")
+                return
+
+            user_previous_grades_listbox.delete(0, tk.END)
+            for subject in mass_assessment_grades[selected_user][0]:
+                user_previous_grades_listbox.insert(tk.END,
+                                                    f"{subject}: {round(mass_assessment_grades[selected_user][0][subject] * 100, 3)}%")
+
+            previous_grades_entry.delete(0, tk.END)
+            previous_grades_entry.focus_set()
+        else:
+            user_previous_grades_listbox.delete(0, tk.END)
+            user_current_grades_listbox.delete(0, tk.END)
+            messagebox.showwarning("No user selected.", "Please select a user.")
+
+    def add_current_grade():
+        selected_index = instagram_user_listbox.curselection()
+        if selected_index:
+            selected_user = instagram_user_listbox.get(selected_index)
+
+            try:
+                subject, grade = current_grades_entry.get().split(":")
+            except:
+                messagebox.showwarning("Invalid format.", "Please enter a subject and grade separated by a colon.")
+                return
+
+            subject = subject.strip().lower()
+            grade = grade.strip()
+
+            try:
+                mass_assessment_grades[selected_user][1][subject] = float(grade) / 100
+            except:
+                messagebox.showwarning("Invalid grade.",
+                                       "Please enter a valid grade as a number without any special characters.")
+                return
+
+            user_current_grades_listbox.delete(0, tk.END)
+            for subject in mass_assessment_grades[selected_user][1]:
+                user_current_grades_listbox.insert(tk.END,
+                                                   f"{subject}: {round(mass_assessment_grades[selected_user][1][subject] * 100, 3)}%")
+
+            current_grades_entry.delete(0, tk.END)
+            current_grades_entry.focus_set()
+        else:
+            user_previous_grades_listbox.delete(0, tk.END)
+            user_current_grades_listbox.delete(0, tk.END)
+            messagebox.showwarning("No user selected.", "Please select a user.")
+
+    def clear_previous_grades():
+        selected_index = instagram_user_listbox.curselection()
+        if selected_index:
+            selected_user = instagram_user_listbox.get(selected_index)
+            mass_assessment_grades[selected_user][0].clear()
+            user_previous_grades_listbox.delete(0, tk.END)
+
+    def clear_current_grades():
+        selected_index = instagram_user_listbox.curselection()
+        if selected_index:
+            selected_user = instagram_user_listbox.get(selected_index)
+            mass_assessment_grades[selected_user][1].clear()
+            user_current_grades_listbox.delete(0, tk.END)
+
+    instagram_user_listbox.bind("<<ListboxSelect>>", update_user_grades)
+
+    previous_grades_entry_label = tk.Label(mass_assessment_window, text="Enter Previous Grade (subject:grade)")
+    previous_grades_entry_label.grid(row=2, column=0, padx=10, pady=5, sticky="e")
+    previous_grades_entry = tk.Entry(mass_assessment_window)
+    previous_grades_entry.grid(row=2, column=1, padx=10, pady=5, sticky="ew")
+    previous_grades_entry.bind("<Return>", (lambda _: add_previous_grade()))
+
+    previous_grades_add_button = tk.Button(mass_assessment_window, text="Add Grade", command=add_previous_grade)
+    previous_grades_add_button.grid(row=2, column=2, padx=10, pady=5, sticky="ew")
+
+    previous_grades_clear_button = tk.Button(mass_assessment_window, text="Clear Grades", command=clear_previous_grades)
+    previous_grades_clear_button.grid(row=3, column=2, padx=10, pady=5, sticky="ew")
+
+    current_grades_entry_label = tk.Label(mass_assessment_window, text="Enter Current Grade (subject:grade)")
+    current_grades_entry_label.grid(row=2, column=3, padx=10, pady=5, sticky="e")
+    current_grades_entry = tk.Entry(mass_assessment_window)
+    current_grades_entry.grid(row=2, column=4, padx=10, pady=5, sticky="ew")
+    current_grades_entry.bind("<Return>", (lambda _: add_current_grade()))
+
+    current_grades_add_button = tk.Button(mass_assessment_window, text="Add Grade", command=add_current_grade)
+    current_grades_add_button.grid(row=2, column=5, padx=10, pady=5, sticky="ew")
+
+    current_grades_clear_button = tk.Button(mass_assessment_window, text="Clear Grades", command=clear_current_grades)
+    current_grades_clear_button.grid(row=3, column=5, padx=10, pady=5, sticky="ew")
 
     instagram_username_label = tk.Label(mass_assessment_window, text="Your Instagram Username")
-    instagram_username_label.grid(row=3, column=0, padx=10, pady=5, sticky="e")
+    instagram_username_label.grid(row=4, column=0, padx=10, pady=5, sticky="e")
     instagram_username_entry = tk.Entry(mass_assessment_window)
-    instagram_username_entry.grid(row=3, column=1, padx=10, pady=5, sticky="ew")
+    instagram_username_entry.grid(row=4, column=1, padx=10, pady=5, sticky="ew")
 
     instagram_password_label = tk.Label(mass_assessment_window, text="Your Instagram Password")
-    instagram_password_label.grid(row=3, column=2, padx=10, pady=5, sticky="e")
+    instagram_password_label.grid(row=4, column=3, padx=10, pady=5, sticky="e")
     instagram_password_entry = tk.Entry(mass_assessment_window, show="*")
-    instagram_password_entry.grid(row=3, column=3, padx=10, pady=5, sticky="ew")
+    instagram_password_entry.grid(row=4, column=4, padx=10, pady=5, sticky="ew")
 
     def run_basic_health_assessment(username):
         try:
@@ -503,7 +682,22 @@ def launch_mass_assessment():
                     datetime.datetime.now(),
                     0.0)])
 
-        mental_health = instagram_assessment_results.overall_health_score
+        try:
+            grades_assessment_results = grades_health_assessment(mass_assessment_grades[username])
+        except:
+            grades_assessment_results = GradesHealthAssessment(0.0, [])
+
+        if len(instagram_assessment_results.results) == 0 or (len(instagram_assessment_results.results) == 1 and
+                                                              (instagram_assessment_results.results[
+                                                                   0].caption.startswith(
+                                                                  "(WARNING)") or instagram_assessment_results.results[
+                                                                   0].caption.startswith("(ERROR)"))):
+            mental_health = grades_assessment_results.overall_health_score
+        elif len(grades_assessment_results.results) == 0:
+            mental_health = instagram_assessment_results.overall_health_score
+        else:
+            mental_health = (instagram_assessment_results.overall_health_score +
+                             grades_assessment_results.overall_health_score) / 2
 
         results_window = tk.Toplevel()
         results_window.title(f"Results for {username}")
@@ -525,13 +719,51 @@ def launch_mass_assessment():
         hint_label.pack(padx=10, pady=5)
         hint_label.bind('<Configure>', lambda _: hint_label.config(wraplength=hint_label.winfo_width()))
 
-        instagram_results_listbox = tk.Listbox(results_window)
-        instagram_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
-        instagram_results_listbox.insert(tk.END,
-                                         f"{round(instagram_assessment_results.results[0].health_score, 3)}: {instagram_assessment_results.results[0].caption}")
-        for result in itertools.islice(instagram_assessment_results.results, 1, None):
+        if len(instagram_assessment_results.results) > 0:
+            instagram_score_label = tk.Label(results_window,
+                                             text=f"Instagram Positivity Score: {round(instagram_assessment_results.overall_health_score, 3)}")
+            instagram_score_label.pack(padx=10)
+            if instagram_assessment_results.overall_health_score < -0.5:
+                instagram_score_label.config(fg="red")
+            elif instagram_assessment_results.overall_health_score < 0:
+                instagram_score_label.config(fg="orange")
+            elif 0 < instagram_assessment_results.overall_health_score <= 0.5:
+                instagram_score_label.config(fg="yellow")
+            elif instagram_assessment_results.overall_health_score > 0.5:
+                instagram_score_label.config(fg="green")
+
+            instagram_results_listbox = tk.Listbox(results_window)
+            instagram_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
             instagram_results_listbox.insert(tk.END,
-                                             f"{round(result.health_score, 3)}: ({result.date.date()}) {result.caption}")
+                                             f"{round(instagram_assessment_results.results[0].health_score, 3)}: {instagram_assessment_results.results[0].caption}")
+            for result in itertools.islice(instagram_assessment_results.results, 1, None):
+                instagram_results_listbox.insert(tk.END,
+                                                 f"{round(result.health_score, 3)}: ({result.date.date()}) {result.caption}")
+        else:
+            instagram_score_label = tk.Label(results_window, text="No Instagram account provided.")
+            instagram_score_label.pack(padx=10, pady=5)
+
+        if len(grades_assessment_results.results) > 0:
+            grades_score_label = tk.Label(results_window,
+                                          text=f"Grade Improvement Score: {round(grades_assessment_results.overall_health_score, 3)}")
+            grades_score_label.pack(padx=10)
+            if grades_assessment_results.overall_health_score < -0.5:
+                grades_score_label.config(fg="red")
+            elif grades_assessment_results.overall_health_score < 0:
+                grades_score_label.config(fg="orange")
+            elif 0 < grades_assessment_results.overall_health_score <= 0.5:
+                grades_score_label.config(fg="yellow")
+            elif grades_assessment_results.overall_health_score > 0.5:
+                grades_score_label.config(fg="green")
+
+            grades_results_listbox = tk.Listbox(results_window)
+            grades_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
+
+            for result in grades_assessment_results.results:
+                grades_results_listbox.insert(tk.END, f"{result.subject}: {round(result.change, 3)}")
+        else:
+            grades_score_label = tk.Label(results_window, text="No grades could be compared.")
+            grades_score_label.pack(padx=10, pady=5)
 
     def run_mass_assessment():
         authentication_username = instagram_username_entry.get()
@@ -552,17 +784,19 @@ def launch_mass_assessment():
         for username in mass_assessment_instagram_accounts:
             threading.Thread(target=run_basic_health_assessment, args=(username,)).start()
 
-    analyze_brightness_mass_checkbox = tk.Checkbutton(mass_assessment_window, text="Analyze Image Brightness (fast)", variable=analyze_brightness, onvalue=True,
+    analyze_brightness_mass_checkbox = tk.Checkbutton(mass_assessment_window, text="Analyze Image Brightness (fast)",
+                                                      variable=analyze_brightness, onvalue=True,
                                                       offvalue=False)
-    analyze_brightness_mass_checkbox.grid(row=4, column=0, columnspan=2, pady=5, sticky="e")
+    analyze_brightness_mass_checkbox.grid(row=5, column=0, columnspan=3, pady=5, sticky="e")
 
-    analyze_images_mass_checkbox = tk.Checkbutton(mass_assessment_window, text="Analyze Image Text (could take longer)", variable=analyze_images, onvalue=True,
+    analyze_images_mass_checkbox = tk.Checkbutton(mass_assessment_window, text="Analyze Image Text (could take longer)",
+                                                  variable=analyze_images, onvalue=True,
                                                   offvalue=False)
-    analyze_images_mass_checkbox.grid(row=4, column=2, columnspan=2, pady=5, sticky="e")
+    analyze_images_mass_checkbox.grid(row=5, column=3, columnspan=3, pady=5, sticky="e")
 
     run_mass_assessment_button = tk.Button(mass_assessment_window, text="Run Mass Assessment",
                                            command=run_mass_assessment)
-    run_mass_assessment_button.grid(row=5, column=0, columnspan=4, padx=10, pady=5, sticky="ew")
+    run_mass_assessment_button.grid(row=6, column=0, columnspan=6, padx=10, pady=5, sticky="ew")
 
     mass_assessment_window.rowconfigure(1, weight=1)
     mass_assessment_window.columnconfigure(0, weight=1)
@@ -618,11 +852,13 @@ password_entry = tk.Entry(root, show="*")
 password_entry.grid(row=3, column=3, padx=10, pady=5, sticky="ew")
 
 analyze_brightness = tk.BooleanVar(value=True)
-analyze_brightness_checkbox = tk.Checkbutton(root, text="Analyze Image Brightness (fast)", variable=analyze_brightness, onvalue=True, offvalue=False)
+analyze_brightness_checkbox = tk.Checkbutton(root, text="Analyze Image Brightness (fast)", variable=analyze_brightness,
+                                             onvalue=True, offvalue=False)
 analyze_brightness_checkbox.grid(row=4, column=0, columnspan=2, pady=5, sticky="e")
 
 analyze_images = tk.BooleanVar()
-analyze_images_checkbox = tk.Checkbutton(root, text="Analyze Image Text (could take longer)", variable=analyze_images, onvalue=True, offvalue=False)
+analyze_images_checkbox = tk.Checkbutton(root, text="Analyze Image Text (could take longer)", variable=analyze_images,
+                                         onvalue=True, offvalue=False)
 analyze_images_checkbox.grid(row=4, column=2, columnspan=2, pady=5, sticky="e")
 
 submit_button = tk.Button(root, text="Run Individual Assessment", command=run_assessment)
