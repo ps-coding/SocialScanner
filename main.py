@@ -744,11 +744,13 @@ def launch_mass_assessment():
     instagram_username_label.grid(row=4, column=0, padx=10, pady=5, sticky="e")
     instagram_username_entry = tk.Entry(mass_assessment_window)
     instagram_username_entry.grid(row=4, column=1, padx=10, pady=5, sticky="ew")
+    instagram_username_entry.insert(0, username_entry.get())
 
     instagram_password_label = tk.Label(mass_assessment_window, text="Your Instagram Password")
     instagram_password_label.grid(row=4, column=3, padx=10, pady=5, sticky="e")
     instagram_password_entry = tk.Entry(mass_assessment_window, show="*")
     instagram_password_entry.grid(row=4, column=4, padx=10, pady=5, sticky="ew")
+    instagram_password_entry.insert(0, password_entry.get())
 
     def save_to_csv():
         location = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV Files",
