@@ -1,3 +1,4 @@
+import csv
 import dataclasses
 import datetime
 import itertools
@@ -179,6 +180,8 @@ current_grades = {}
 mass_assessment_instagram_accounts = set()
 mass_assessment_grades = {}
 
+mass_results = []
+
 
 def add_previous_grade():
     global previous_grades
@@ -249,9 +252,15 @@ def clear_current_grades():
 def run_assessment():
     authentication_username = username_entry.get()
     authentication_password = password_entry.get()
-    username = instagram_entry.get().strip().lower()
-    instagram_entry.delete(0, tk.END)
-    instagram_entry.insert(0, username)
+
+    user_input = instagram_entry.get()
+    try:
+        real_name, username = user_input.split("@")
+        real_name = real_name.strip()
+        username = username.strip().lower()
+    except:
+        real_name = ""
+        username = user_input.strip().lower()
 
     if username == "" and len(previous_grades) == 0 and len(current_grades) == 0:
         messagebox.showwarning("No data entered.", "Please enter an Instagram account and/or grades.")
@@ -301,7 +310,12 @@ def run_assessment():
                          grades_assessment_results.overall_health_score) / 2
 
     results_window = tk.Toplevel()
-    results_window.title("Results")
+    if real_name == "" and username == "":
+        results_window.title("Results")
+    elif username == "":
+        results_window.title(f"Results for {real_name}")
+    else:
+        results_window.title(f"Results for {real_name}@{username}")
 
     results_label = tk.Label(results_window, text=f"Mental Health Level: {round(mental_health, 3)}")
     if mental_health < -0.5:
@@ -337,9 +351,26 @@ def run_assessment():
         instagram_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
         instagram_results_listbox.insert(tk.END,
                                          f"{round(instagram_assessment_results.results[0].health_score, 3)}: {instagram_assessment_results.results[0].caption}")
+        if instagram_assessment_results.results[0].health_score < -0.5:
+            instagram_results_listbox.itemconfig(tk.END, {'fg': 'red'})
+        elif instagram_assessment_results.results[0].health_score < 0:
+            instagram_results_listbox.itemconfig(tk.END, {'fg': 'orange'})
+        elif 0 < instagram_assessment_results.results[0].health_score <= 0.5:
+            instagram_results_listbox.itemconfig(tk.END, {'fg': 'yellow'})
+        elif instagram_assessment_results.results[0].health_score > 0.5:
+            instagram_results_listbox.itemconfig(tk.END, {'fg': 'green'})
+
         for result in itertools.islice(instagram_assessment_results.results, 1, None):
             instagram_results_listbox.insert(tk.END,
                                              f"{round(result.health_score, 3)}: ({result.date.date()}) {result.caption}")
+            if result.health_score < -0.5:
+                instagram_results_listbox.itemconfig(tk.END, {'fg': 'red'})
+            elif result.health_score < 0:
+                instagram_results_listbox.itemconfig(tk.END, {'fg': 'orange'})
+            elif 0 < result.health_score <= 0.5:
+                instagram_results_listbox.itemconfig(tk.END, {'fg': 'yellow'})
+            elif result.health_score > 0.5:
+                instagram_results_listbox.itemconfig(tk.END, {'fg': 'green'})
     else:
         instagram_score_label = tk.Label(results_window, text="No Instagram account provided.")
         instagram_score_label.pack(padx=10, pady=5)
@@ -361,6 +392,14 @@ def run_assessment():
         grades_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
         for result in grades_assessment_results.results:
             grades_results_listbox.insert(tk.END, f"{result.subject}: {round(result.change, 3)}")
+            if result.change < -0.5:
+                grades_results_listbox.itemconfig(tk.END, {'fg': 'red'})
+            elif result.change < 0:
+                grades_results_listbox.itemconfig(tk.END, {'fg': 'orange'})
+            elif 0 < result.change <= 0.5:
+                grades_results_listbox.itemconfig(tk.END, {'fg': 'yellow'})
+            elif result.change > 0.5:
+                grades_results_listbox.itemconfig(tk.END, {'fg': 'green'})
     else:
         grades_score_label = tk.Label(results_window, text="No grades could be compared.")
         grades_score_label.pack(padx=10, pady=5)
@@ -413,7 +452,7 @@ def launch_mass_assessment():
     mass_assessment_window = tk.Toplevel()
     mass_assessment_window.title("Mass Assessment")
 
-    instagram_user_label = tk.Label(mass_assessment_window, text="Enter Instagram Username")
+    instagram_user_label = tk.Label(mass_assessment_window, text="Enter Name/Instagram Username")
     instagram_user_label.grid(row=0, column=0, padx=10, pady=5, sticky="e")
     instagram_user_entry = tk.Entry(mass_assessment_window)
     instagram_user_entry.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
@@ -425,10 +464,20 @@ def launch_mass_assessment():
         instagram_user_listbox.insert(tk.END, user)
 
     def add_instagram_user():
-        instagram_user = instagram_user_entry.get().strip().lower()
+        user_input = instagram_user_entry.get()
 
-        if instagram_user == "":
-            messagebox.showwarning("Empty field.", "Please enter an Instagram account.")
+        try:
+            real_name, username = user_input.split("@")
+            real_name = real_name.strip()
+            username = username.strip().lower()
+        except:
+            real_name = ""
+            username = user_input.strip().lower()
+
+        instagram_user = f"{real_name}@{username}"
+
+        if instagram_user == "" or instagram_user == "@":
+            messagebox.showwarning("Empty field.", "Please enter a name/account.")
             return
 
         mass_assessment_instagram_accounts.add(instagram_user)
@@ -467,9 +516,9 @@ def launch_mass_assessment():
         user_current_grades_listbox.delete(0, tk.END)
 
     def import_list():
-        list_file = filedialog.askopenfilename()
+        list_file = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("Text Files", "*.txt")])
         try:
-            file = open(list_file, "r")
+            file = open(list_file)
         except:
             messagebox.showwarning("Invalid file.", "File could not be loaded.")
             return
@@ -480,25 +529,54 @@ def launch_mass_assessment():
                     continue
 
                 try:
-                    account, grades = line.split(":")
-                    mass_assessment_instagram_accounts.add(account.strip().lower())
+                    user_input, grades = line.split(":")
+
                     try:
-                        mass_assessment_grades[account.strip().lower()] = [{}, {}]
+                        real_name, username = user_input.split("@")
+                        real_name = real_name.strip()
+                        username = username.strip().lower()
+                    except:
+                        real_name = ""
+                        username = user_input.strip().lower()
+
+                    account = f"{real_name}@{username}"
+
+                    if account == "" or account == "@":
+                        continue
+
+                    mass_assessment_instagram_accounts.add(account)
+
+                    try:
+                        mass_assessment_grades[account] = [{}, {}]
                         previous, current = grades.split(";")
                         for subject in previous.split(","):
                             subject, grade = subject.split("=")
-                            mass_assessment_grades[account.strip().lower()][0][subject.strip().lower()] = float(
+                            mass_assessment_grades[account][0][subject.strip().lower()] = float(
                                 grade.strip()) / 100
                         for subject in current.split(","):
                             subject, grade = subject.split("=")
-                            mass_assessment_grades[account.strip().lower()][1][subject.strip().lower()] = float(
+                            mass_assessment_grades[account][1][subject.strip().lower()] = float(
                                 grade.strip()) / 100
                     except:
-                        mass_assessment_grades.pop(account.strip().lower(), None)
-                        mass_assessment_grades[account.strip().lower()] = [{}, {}]
+                        mass_assessment_grades[account] = [{}, {}]
                 except:
-                    mass_assessment_instagram_accounts.add(line.strip().lower())
-                    mass_assessment_grades[line.strip().lower()] = [{}, {}]
+                    user_input = line.strip()
+
+                    try:
+                        real_name, username = user_input.split("@")
+                        real_name = real_name.strip()
+                        username = username.strip().lower()
+                    except:
+                        real_name = ""
+                        username = user_input.strip().lower()
+
+                    name = f"{real_name}@{username}"
+
+                    if name == "" or name == "@":
+                        continue
+
+                    mass_assessment_instagram_accounts.add(name)
+                    mass_assessment_grades[name] = [{}, {}]
 
         instagram_user_listbox.delete(0, tk.END)
         for user in mass_assessment_instagram_accounts:
@@ -509,17 +587,17 @@ def launch_mass_assessment():
 
     instagram_user_entry.bind("<Return>", (lambda _: add_instagram_user()))
 
-    add_instagram_user_button = tk.Button(mass_assessment_window, text="Add Instagram User", command=add_instagram_user)
+    add_instagram_user_button = tk.Button(mass_assessment_window, text="Add Entry", command=add_instagram_user)
     add_instagram_user_button.grid(row=0, column=2, padx=10, pady=5, sticky="ew")
 
     import_list_button = tk.Button(mass_assessment_window, text="Import List", command=import_list)
     import_list_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
 
-    remove_instagram_user_button = tk.Button(mass_assessment_window, text="Remove Instagram User",
+    remove_instagram_user_button = tk.Button(mass_assessment_window, text="Remove Entry",
                                              command=remove_instagram_user)
     remove_instagram_user_button.grid(row=1, column=2, padx=10, pady=5, sticky="ew")
 
-    clear_instagram_users_button = tk.Button(mass_assessment_window, text="Clear Instagram Users",
+    clear_instagram_users_button = tk.Button(mass_assessment_window, text="Clear Entries",
                                              command=clear_instagram_users)
     clear_instagram_users_button.grid(row=1, column=3, padx=10, pady=5, sticky="ew")
 
@@ -535,7 +613,7 @@ def launch_mass_assessment():
     user_current_grades_listbox = tk.Listbox(mass_assessment_window)
     user_current_grades_listbox.grid(row=3, column=4, padx=10, pady=5, sticky="nsew")
 
-    def update_user_grades(e):
+    def update_user_grades():
         selected_index = instagram_user_listbox.curselection()
         if selected_index:
             selected_user = instagram_user_listbox.get(selected_index)
@@ -587,7 +665,7 @@ def launch_mass_assessment():
         else:
             user_previous_grades_listbox.delete(0, tk.END)
             user_current_grades_listbox.delete(0, tk.END)
-            messagebox.showwarning("No user selected.", "Please select a user.")
+            messagebox.showwarning("No student selected.", "Please select a student.")
 
     def add_current_grade():
         selected_index = instagram_user_listbox.curselection()
@@ -620,7 +698,7 @@ def launch_mass_assessment():
         else:
             user_previous_grades_listbox.delete(0, tk.END)
             user_current_grades_listbox.delete(0, tk.END)
-            messagebox.showwarning("No user selected.", "Please select a user.")
+            messagebox.showwarning("No student selected.", "Please select a student.")
 
     def clear_previous_grades():
         selected_index = instagram_user_listbox.curselection()
@@ -636,7 +714,7 @@ def launch_mass_assessment():
             mass_assessment_grades[selected_user][1].clear()
             user_current_grades_listbox.delete(0, tk.END)
 
-    instagram_user_listbox.bind("<<ListboxSelect>>", update_user_grades)
+    instagram_user_listbox.bind("<<ListboxSelect>>", lambda _: update_user_grades())
 
     previous_grades_entry_label = tk.Label(mass_assessment_window, text="Enter Previous Grade (subject:grade)")
     previous_grades_entry_label.grid(row=2, column=0, padx=10, pady=5, sticky="e")
@@ -672,18 +750,152 @@ def launch_mass_assessment():
     instagram_password_entry = tk.Entry(mass_assessment_window, show="*")
     instagram_password_entry.grid(row=4, column=4, padx=10, pady=5, sticky="ew")
 
-    def run_basic_health_assessment(username):
-        try:
-            instagram_assessment_results = instagram_health_assessment(username)
-        except:
-            instagram_assessment_results = InstagramHealthAssessment(0.0, [
-                InstagramHealthAssessment.AssessmentResult(
-                    "(ERROR) No account found. Instagram may refuse to accept connections if you are not logged in.",
-                    datetime.datetime.now(),
-                    0.0)])
+    def save_to_csv():
+        location = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV Files",
+                                                                                     "*.csv")])
 
         try:
-            grades_assessment_results = grades_health_assessment(mass_assessment_grades[username])
+            file = open(location, "w")
+        except:
+            messagebox.showwarning("Invalid file.", "Could not save file.")
+            return
+
+        with file:
+            csv_out = csv.writer(file)
+            csv_out.writerow(['display_name', 'username', 'overall_score', 'instagram_score', 'grades_score',
+                              'instagram_results',
+                              'grade_results'])
+
+            for row in mass_results:
+                csv_out.writerow((row[0], row[1], row[2], row[3].overall_health_score, row[4].overall_health_score,
+                                  row[3].results, row[4].results))
+
+    def show_details(current_selection):
+        selected_user = mass_results[current_selection[0]]
+
+        details_window = tk.Toplevel()
+        if selected_user[0] == "":
+            details_window.title("Details")
+        else:
+            details_window.title(f"Details for {selected_user[0]}")
+
+        results_label = tk.Label(details_window, text=f"Details for {selected_user[0]}")
+        results_label.pack(padx=10)
+
+        mental_health_label = tk.Label(details_window, text=f"Mental Health Score: {round(selected_user[2], 3)}")
+        mental_health_label.pack()
+
+        if selected_user[2] < -0.5:
+            mental_health_label.config(fg="red")
+        elif selected_user[2] < 0:
+            mental_health_label.config(fg="orange")
+        elif 0 < selected_user[2] <= 0.5:
+            mental_health_label.config(fg="yellow")
+        elif selected_user[2] > 0.5:
+            mental_health_label.config(fg="green")
+
+        if selected_user[1] != "":
+            instagram_score_label = tk.Label(details_window,
+                                             text=f"Instagram Positivity Score: {round(selected_user[3].overall_health_score, 3)}")
+            instagram_score_label.pack(padx=10)
+            if selected_user[3].overall_health_score < -0.5:
+                instagram_score_label.config(fg="red")
+            elif selected_user[3].overall_health_score < 0:
+                instagram_score_label.config(fg="orange")
+            elif 0 < selected_user[3].overall_health_score <= 0.5:
+                instagram_score_label.config(fg="yellow")
+            elif selected_user[3].overall_health_score > 0.5:
+                instagram_score_label.config(fg="green")
+
+            instagram_results_listbox = tk.Listbox(details_window)
+            instagram_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
+            instagram_results_listbox.insert(tk.END,
+                                             f"{round(selected_user[3].results[0].health_score, 3)}: {selected_user[3].results[0].caption}")
+            if selected_user[3].results[0].health_score < -0.5:
+                instagram_results_listbox.itemconfig(tk.END, {'fg': 'red'})
+            elif selected_user[3].results[0].health_score < 0:
+                instagram_results_listbox.itemconfig(tk.END, {'fg': 'orange'})
+            elif 0 < selected_user[3].results[0].health_score <= 0.5:
+                instagram_results_listbox.itemconfig(tk.END, {'fg': 'yellow'})
+            elif selected_user[3].results[0].health_score > 0.5:
+                instagram_results_listbox.itemconfig(tk.END, {'fg': 'green'})
+
+            for result in itertools.islice(selected_user[3].results, 1, None):
+                instagram_results_listbox.insert(tk.END,
+                                                 f"{round(result.health_score, 3)}: ({result.date.date()}) {result.caption}")
+                if result.health_score < -0.5:
+                    instagram_results_listbox.itemconfig(tk.END, {'fg': 'red'})
+                elif result.health_score < 0:
+                    instagram_results_listbox.itemconfig(tk.END, {'fg': 'orange'})
+                elif 0 < result.health_score <= 0.5:
+                    instagram_results_listbox.itemconfig(tk.END, {'fg': 'yellow'})
+                elif result.health_score > 0.5:
+                    instagram_results_listbox.itemconfig(tk.END, {'fg': 'green'})
+        else:
+            instagram_score_label = tk.Label(details_window, text="No Instagram account provided.")
+            instagram_score_label.pack(padx=10, pady=5)
+
+        if len(selected_user[4].results) > 0:
+            grades_score_label = tk.Label(details_window, text=f"Grade Improvement Score: "
+                                                               f"{round(selected_user[4].overall_health_score, 3)}")
+            grades_score_label.pack(padx=10)
+            if selected_user[4].overall_health_score < -0.5:
+                grades_score_label.config(fg="red")
+            elif selected_user[4].overall_health_score < 0:
+                grades_score_label.config(fg="orange")
+            elif 0 < selected_user[4].overall_health_score <= 0.5:
+                grades_score_label.config(fg="yellow")
+            elif selected_user[4].overall_health_score > 0.5:
+                grades_score_label.config(fg="green")
+
+            grades_results_listbox = tk.Listbox(details_window)
+            grades_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
+            for result in selected_user[4].results:
+                grades_results_listbox.insert(tk.END, f"{result.subject}: {round(result.change, 3)}")
+                if result.change < -0.5:
+                    grades_results_listbox.itemconfig(tk.END, {'fg': 'red'})
+                elif result.change < 0:
+                    grades_results_listbox.itemconfig(tk.END, {'fg': 'orange'})
+                elif 0 < result.change <= 0.5:
+                    grades_results_listbox.itemconfig(tk.END, {'fg': 'yellow'})
+                elif result.change > 0.5:
+                    grades_results_listbox.itemconfig(tk.END, {'fg': 'green'})
+        else:
+            grades_score_label = tk.Label(details_window, text="No grades could be compared.")
+            grades_score_label.pack(padx=10, pady=5)
+
+    def run_basic_health_assessment(user_input, total_users):
+        try:
+            real_name, username = user_input.split("@")
+            real_name = real_name.strip()
+            username = username.strip().lower()
+        except:
+            real_name = ""
+            username = user_input.strip().lower()
+
+        if real_name == "" and username == "":
+            display_name = ""
+        elif username == "":
+            display_name = real_name
+        else:
+            display_name = f"{real_name}@{username}"
+
+        if username != "":
+            try:
+                instagram_assessment_results = instagram_health_assessment(username)
+            except:
+                instagram_assessment_results = InstagramHealthAssessment(0.0, [
+                    InstagramHealthAssessment.AssessmentResult(
+                        "(ERROR) No account found. Instagram may refuse to accept connections if you are not logged in.",
+                        datetime.datetime.now(),
+                        0.0)])
+        else:
+            instagram_assessment_results = InstagramHealthAssessment(0.0, [
+                InstagramHealthAssessment.AssessmentResult("(ERROR) No account entered.", datetime.datetime.now(),
+                                                           0.0)])
+
+        try:
+            grades_assessment_results = grades_health_assessment(mass_assessment_grades[user_input])
         except:
             grades_assessment_results = GradesHealthAssessment(0.0, [])
 
@@ -699,71 +911,42 @@ def launch_mass_assessment():
             mental_health = (instagram_assessment_results.overall_health_score +
                              grades_assessment_results.overall_health_score) / 2
 
-        results_window = tk.Toplevel()
-        results_window.title(f"Results for {username}")
+        mass_results.append((display_name, username, mental_health, instagram_assessment_results,
+                             grades_assessment_results))
 
-        results_label = tk.Label(results_window, text=f"{username}'s Mental Health Level: {round(mental_health, 3)}")
-        if mental_health < -0.5:
-            results_label.config(fg="red")
-        elif mental_health < 0:
-            results_label.config(fg="orange")
-        elif 0 < mental_health <= 0.5:
-            results_label.config(fg="yellow")
-        elif mental_health > 0.5:
-            results_label.config(fg="green")
+        if len(mass_results) == total_users:
+            def sort_key(result):
+                return result[2]
 
-        results_label.pack(padx=10)
+            mass_results.sort(key=sort_key)
 
-        hint_label = tk.Label(results_window,
-                              text="The higher the number, the better the mental health.\nUse this tool with judgement.")
-        hint_label.pack(padx=10, pady=5)
-        hint_label.bind('<Configure>', lambda _: hint_label.config(wraplength=hint_label.winfo_width()))
+            results_window = tk.Toplevel()
+            results_window.title("Results Summary")
 
-        if len(instagram_assessment_results.results) > 0:
-            instagram_score_label = tk.Label(results_window,
-                                             text=f"Instagram Positivity Score: {round(instagram_assessment_results.overall_health_score, 3)}")
-            instagram_score_label.pack(padx=10)
-            if instagram_assessment_results.overall_health_score < -0.5:
-                instagram_score_label.config(fg="red")
-            elif instagram_assessment_results.overall_health_score < 0:
-                instagram_score_label.config(fg="orange")
-            elif 0 < instagram_assessment_results.overall_health_score <= 0.5:
-                instagram_score_label.config(fg="yellow")
-            elif instagram_assessment_results.overall_health_score > 0.5:
-                instagram_score_label.config(fg="green")
+            results_label = tk.Label(results_window, text="Results Summary")
+            results_label.pack(padx=10)
 
-            instagram_results_listbox = tk.Listbox(results_window)
-            instagram_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
-            instagram_results_listbox.insert(tk.END,
-                                             f"{round(instagram_assessment_results.results[0].health_score, 3)}: {instagram_assessment_results.results[0].caption}")
-            for result in itertools.islice(instagram_assessment_results.results, 1, None):
-                instagram_results_listbox.insert(tk.END,
-                                                 f"{round(result.health_score, 3)}: ({result.date.date()}) {result.caption}")
-        else:
-            instagram_score_label = tk.Label(results_window, text="No Instagram account provided.")
-            instagram_score_label.pack(padx=10, pady=5)
+            results_listbox = tk.Listbox(results_window)
+            results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
+            for result in mass_results:
+                results_listbox.insert(tk.END, f"{result[0]}: {round(result[2], 3)}")
+                if result[2] < -0.5:
+                    results_listbox.itemconfig(tk.END, {'fg': 'red'})
+                elif result[2] < 0:
+                    results_listbox.itemconfig(tk.END, {'fg': 'orange'})
+                elif 0 < result[2] <= 0.5:
+                    results_listbox.itemconfig(tk.END, {'fg': 'yellow'})
+                elif result[2] > 0.5:
+                    results_listbox.itemconfig(tk.END, {'fg': 'green'})
 
-        if len(grades_assessment_results.results) > 0:
-            grades_score_label = tk.Label(results_window,
-                                          text=f"Grade Improvement Score: {round(grades_assessment_results.overall_health_score, 3)}")
-            grades_score_label.pack(padx=10)
-            if grades_assessment_results.overall_health_score < -0.5:
-                grades_score_label.config(fg="red")
-            elif grades_assessment_results.overall_health_score < 0:
-                grades_score_label.config(fg="orange")
-            elif 0 < grades_assessment_results.overall_health_score <= 0.5:
-                grades_score_label.config(fg="yellow")
-            elif grades_assessment_results.overall_health_score > 0.5:
-                grades_score_label.config(fg="green")
+            show_more_button = tk.Button(results_window, text="Show Details",
+                                         command=lambda: show_details(results_listbox.curselection()))
+            show_more_button.pack(padx=10, pady=5)
 
-            grades_results_listbox = tk.Listbox(results_window)
-            grades_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
+            save_to_csv_button = tk.Button(results_window, text="Save to CSV", command=save_to_csv)
+            save_to_csv_button.pack(padx=10, pady=5)
 
-            for result in grades_assessment_results.results:
-                grades_results_listbox.insert(tk.END, f"{result.subject}: {round(result.change, 3)}")
-        else:
-            grades_score_label = tk.Label(results_window, text="No grades could be compared.")
-            grades_score_label.pack(padx=10, pady=5)
+            results_window.rowconfigure(1, weight=1)
 
     def run_mass_assessment():
         authentication_username = instagram_username_entry.get()
@@ -778,11 +961,14 @@ def launch_mass_assessment():
                 return
 
         if len(mass_assessment_instagram_accounts) == 0:
-            messagebox.showwarning("Insufficient accounts.", "Please add at least one Instagram account.")
+            messagebox.showwarning("Insufficient entries.", "Please add at least one entry.")
             return
 
+        mass_results.clear()
+
         for username in mass_assessment_instagram_accounts:
-            threading.Thread(target=run_basic_health_assessment, args=(username,)).start()
+            threading.Thread(target=run_basic_health_assessment,
+                             args=(username, len(mass_assessment_instagram_accounts))).start()
 
     analyze_brightness_mass_checkbox = tk.Checkbutton(mass_assessment_window, text="Analyze Image Brightness (fast)",
                                                       variable=analyze_brightness, onvalue=True,
@@ -804,9 +990,9 @@ def launch_mass_assessment():
 
 
 root = tk.Tk()
-root.title("Mental Health Assessment")
+root.title("Social Scanner: Mental Health Assessment")
 
-instagram_entry_label = tk.Label(root, text="Enter Instagram Username")
+instagram_entry_label = tk.Label(root, text="Enter Name/Instagram Username")
 instagram_entry_label.grid(row=0, column=0, padx=10, pady=5, sticky="e")
 instagram_entry = tk.Entry(root)
 instagram_entry.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
@@ -851,7 +1037,7 @@ password_label.grid(row=3, column=2, padx=10, pady=5, sticky="e")
 password_entry = tk.Entry(root, show="*")
 password_entry.grid(row=3, column=3, padx=10, pady=5, sticky="ew")
 
-analyze_brightness = tk.BooleanVar(value=True)
+analyze_brightness = tk.BooleanVar()
 analyze_brightness_checkbox = tk.Checkbutton(root, text="Analyze Image Brightness (fast)", variable=analyze_brightness,
                                              onvalue=True, offvalue=False)
 analyze_brightness_checkbox.grid(row=4, column=0, columnspan=2, pady=5, sticky="e")

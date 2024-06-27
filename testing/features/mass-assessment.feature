@@ -13,4 +13,4 @@ Feature: Mass Assessment
   Scenario: "serialkillerspodcast" and "6amsuccess" have been entered without any grades
     Given the user has entered "serialkillerspodcast" and "6amsuccess" into the Instagram accounts field
     When the "Run Mass Assessment" button is clicked
-    Then the user should see two new windows containing the results for "serialkillerspodcast" and "6amsuccess" with a positive green score of approximately 0.5 and a list of 20 posts in the "6amsuccess" window and a negative red score of approximately -0.9 and a list of 20 posts in the "serialkillerspodcast" window
+    Then the user should see a window containing the results for "serialkillerspodcast" and "6amsuccess" with a positive green score of approximately 0.5 associated with "6amsuccess" and a negative red score of approximately -0.9 with "serialkillerspodcast". Each label, if selected, can be expanded via a button which opens a new window giving more depth to their mental health – with things like their score, captions, and image details.
