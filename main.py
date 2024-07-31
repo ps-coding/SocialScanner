@@ -176,7 +176,7 @@ def grades_health_assessment(grades: list) -> GradesHealthAssessment:
     if len(results) == 0:
         return GradesHealthAssessment(0.0, results)
 
-    return GradesHealthAssessment(health_score * 2 / len(results), results) # Drops in grades need to be multiplied by 2 to highlight them more
+    return GradesHealthAssessment(health_score * 2.5 / len(results), results) # Drops in grades need to be multiplied by 2 to highlight them more
 
 
 root = tk.Tk()
