@@ -176,11 +176,13 @@ def grades_health_assessment(grades: list) -> GradesHealthAssessment:
     if len(results) == 0:
         return GradesHealthAssessment(0.0, results)
 
-    return GradesHealthAssessment(health_score / len(results), results)
+    return GradesHealthAssessment(health_score * 2 / len(results), results) # Drops in grades need to be multiplied by 2 to highlight them more
 
 
 root = tk.Tk()
 root.title("Social Scanner")
+root.geometry("1400x700")
+root.minsize(1200, 600)
 
 student_names = set()
 student_grades = {}
@@ -687,13 +689,13 @@ def save_to_csv():
 
     with file:
         csv_out = csv.writer(file)
-        csv_out.writerow(['display_name', 'username', 'overall_score', 'instagram_score', 'grades_score',
+        csv_out.writerow(['display_name', 'username', 'overall_score', 'instagram_score', 'grades_score', 'text_score',
                           'instagram_results',
-                          'grade_results'])
+                          'grade_results', 'text_content'])
 
         for row in assessment_results:
             csv_out.writerow((row[0], row[1], row[2], row[3].overall_health_score, row[4].overall_health_score,
-                              row[3].results, row[4].results))
+                              row[5].overall_health_score, row[3].results, row[4].results, row[5].student_text))
 
 def show_details(current_selection):
     try:
@@ -967,7 +969,7 @@ current_grades_add_button.config(state=tk.DISABLED)
 
 root.rowconfigure(1, weight=1)
 root.columnconfigure(1, weight=1)
-root.columnconfigure(4, weight=1)
+root.columnconfigure(4, weight=4)
 
 
 if __name__ == '__main__':
