@@ -3,6 +3,9 @@ import dataclasses
 import datetime
 import itertools
 import threading
+import customtkinter as ctk
+from customtkinter import *
+import speech_recognition as sr
 import tkinter as tk
 import urllib
 import urllib.request
@@ -12,6 +15,7 @@ import cv2
 import easyocr
 import instaloader
 import nltk
+nltk.download('punkt_tab')
 import nltk.corpus
 import nltk.sentiment
 import nltk.tokenize
@@ -20,6 +24,7 @@ import numpy as np
 sentiment_analyzer = nltk.sentiment.vader.SentimentIntensityAnalyzer()
 instagram_bot = instaloader.Instaloader()
 reader = easyocr.Reader(['en'])
+recognizer = sr.Recognizer()
 
 
 def preprocess_text(text: str) -> str:
@@ -179,7 +184,8 @@ def grades_health_assessment(grades: list) -> GradesHealthAssessment:
     return GradesHealthAssessment(health_score * 2.5 / len(results), results) # Drops in grades need to be multiplied by 2 to highlight them more
 
 
-root = tk.Tk()
+root = CTk()
+ctk.set_default_color_theme("dark-blue")
 root.title("Social Scanner")
 root.geometry("1400x700")
 root.minsize(1200, 600)
@@ -192,9 +198,9 @@ assessment_results = []
 analyze_brightness = tk.BooleanVar()
 analyze_images = tk.BooleanVar()
 
-name_label = tk.Label(root, text="Enter Name (real@insta)")
+name_label = ctk.CTkLabel(root, text="Enter Name (real@insta)")
 name_label.grid(row=0, column=0, padx=10, pady=5, sticky="e")
-name_entry = tk.Entry(root)
+name_entry = ctk.CTkEntry(root)
 name_entry.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
 
 students_listbox = tk.Listbox(root, exportselection=0)
@@ -231,11 +237,11 @@ def add_student():
     current_grades_listbox.delete(0, tk.END)
     text_input.delete("1.0", tk.END)
 
-    text_input.config(state=tk.DISABLED)
-    previous_grades_entry.config(state=tk.DISABLED)
-    current_grades_entry.config(state=tk.DISABLED)
-    previous_grades_add_button.config(state=tk.DISABLED)
-    current_grades_add_button.config(state=tk.DISABLED)
+    text_input.configure(state=tk.DISABLED)
+    previous_grades_entry.configure(state=tk.DISABLED)
+    current_grades_entry.configure(state=tk.DISABLED)
+    previous_grades_add_button.configure(state=tk.DISABLED)
+    current_grades_add_button.configure(state=tk.DISABLED)
 
     text_input_label.grid_remove()
     text_input.grid_remove()
@@ -269,11 +275,11 @@ def remove_student():
     current_grades_listbox.delete(0, tk.END)
     text_input.delete("1.0", tk.END)
 
-    text_input.config(state=tk.DISABLED)
-    previous_grades_entry.config(state=tk.DISABLED)
-    current_grades_entry.config(state=tk.DISABLED)
-    previous_grades_add_button.config(state=tk.DISABLED)
-    current_grades_add_button.config(state=tk.DISABLED)
+    text_input.configure(state=tk.DISABLED)
+    previous_grades_entry.configure(state=tk.DISABLED)
+    current_grades_entry.configure(state=tk.DISABLED)
+    previous_grades_add_button.configure(state=tk.DISABLED)
+    current_grades_add_button.configure(state=tk.DISABLED)
 
     text_input_label.grid_remove()
     text_input.grid_remove()
@@ -300,11 +306,11 @@ def clear_students():
     current_grades_listbox.delete(0, tk.END)
     text_input.delete("1.0", tk.END)
 
-    text_input.config(state=tk.DISABLED)
-    previous_grades_entry.config(state=tk.DISABLED)
-    current_grades_entry.config(state=tk.DISABLED)
-    previous_grades_add_button.config(state=tk.DISABLED)
-    current_grades_add_button.config(state=tk.DISABLED)
+    text_input.configure(state=tk.DISABLED)
+    previous_grades_entry.configure(state=tk.DISABLED)
+    current_grades_entry.configure(state=tk.DISABLED)
+    previous_grades_add_button.configure(state=tk.DISABLED)
+    current_grades_add_button.configure(state=tk.DISABLED)
 
     text_input_label.grid_remove()
     text_input.grid_remove()
@@ -430,11 +436,11 @@ def import_list():
     current_grades_listbox.delete(0, tk.END)
     text_input.delete("1.0", tk.END)
 
-    text_input.config(state=tk.DISABLED)
-    previous_grades_entry.config(state=tk.DISABLED)
-    current_grades_entry.config(state=tk.DISABLED)
-    previous_grades_add_button.config(state=tk.DISABLED)
-    current_grades_add_button.config(state=tk.DISABLED)
+    text_input.configure(state=tk.DISABLED)
+    previous_grades_entry.configure(state=tk.DISABLED)
+    current_grades_entry.configure(state=tk.DISABLED)
+    previous_grades_add_button.configure(state=tk.DISABLED)
+    current_grades_add_button.configure(state=tk.DISABLED)
 
     text_input_label.grid_remove()
     text_input.grid_remove()
@@ -454,11 +460,11 @@ def import_list():
 def update_text():
     selected_index = students_listbox.curselection()
     if selected_index:
-        text_input.config(state=tk.NORMAL)
-        previous_grades_entry.config(state=tk.NORMAL)
-        current_grades_entry.config(state=tk.NORMAL)
-        previous_grades_add_button.config(state=tk.NORMAL)
-        current_grades_add_button.config(state=tk.NORMAL)
+        text_input.configure(state=tk.NORMAL)
+        previous_grades_entry.configure(state=tk.NORMAL)
+        current_grades_entry.configure(state=tk.NORMAL)
+        previous_grades_add_button.configure(state=tk.NORMAL)
+        current_grades_add_button.configure(state=tk.NORMAL)
 
         text_input_label.grid()
         text_input.grid()
@@ -482,11 +488,11 @@ def update_text():
         current_grades_listbox.delete(0, tk.END)
         text_input.delete("1.0", tk.END)
 
-        text_input.config(state=tk.DISABLED)
-        previous_grades_entry.config(state=tk.DISABLED)
-        current_grades_entry.config(state=tk.DISABLED)
-        previous_grades_add_button.config(state=tk.DISABLED)
-        current_grades_add_button.config(state=tk.DISABLED)
+        text_input.configure(state=tk.DISABLED)
+        previous_grades_entry.configure(state=tk.DISABLED)
+        current_grades_entry.configure(state=tk.DISABLED)
+        previous_grades_add_button.configure(state=tk.DISABLED)
+        current_grades_add_button.configure(state=tk.DISABLED)
 
         text_input_label.grid_remove()
         text_input.grid_remove()
@@ -507,34 +513,34 @@ def update_text():
 
 name_entry.bind("<Return>", (lambda _: add_student()))
 
-add_instagram_user_button = tk.Button(root, text="Add Student", command=add_student)
+add_instagram_user_button = ctk.CTkButton(root, text="Add Student", height=50,command=add_student)
 add_instagram_user_button.grid(row=0, column=2, padx=10, pady=5, sticky="ew")
 
-import_list_button = tk.Button(root, text="Import List", command=import_list)
+import_list_button = ctk.CTkButton(root, text="Import List", height=50,command=import_list)
 import_list_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
 
-text_input_label = tk.Label(root, text="Enter Student's Text")
+text_input_label = ctk.CTkLabel(root, text="Enter Student's Text")
 text_input_label.grid(row=0, column=4, padx=10, pady=5, sticky="nw")
 
-text_input = tk.Text(root)
+text_input = ctk.CTkTextbox(root)
 text_input.grid(row=1, column=4, padx=10, pady=5, sticky="nesw")
 text_input.bind("<KeyRelease>", (lambda _: update_text()))
 
-remove_instagram_user_button = tk.Button(root, text="Remove Student",
-                                         command=remove_student)
+remove_instagram_user_button = ctk.CTkButton(root, text="Remove Student",
+                                         height=50,command=remove_student)
 remove_instagram_user_button.grid(row=1, column=2, padx=10, pady=5, sticky="ew")
 
-clear_instagram_users_button = tk.Button(root, text="Clear Students",
-                                         command=clear_students)
+clear_instagram_users_button = ctk.CTkButton(root, text="Clear Students",
+                                         height=50,command=clear_students)
 clear_instagram_users_button.grid(row=1, column=3, padx=10, pady=5, sticky="ew")
 
-previous_grades_listbox_label = tk.Label(root, text="Previous Grades")
+previous_grades_listbox_label = ctk.CTkLabel(root, text="Previous Grades")
 previous_grades_listbox_label.grid(row=3, column=0, padx=10, pady=5, sticky="ne")
 
 previous_grades_listbox = tk.Listbox(root)
 previous_grades_listbox.grid(row=3, column=1, padx=10, pady=5, sticky="nsew")
 
-current_grades_listbox_label = tk.Label(root, text="Current Grades")
+current_grades_listbox_label = ctk.CTkLabel(root, text="Current Grades")
 current_grades_listbox_label.grid(row=3, column=3, padx=10, pady=5, sticky="ne")
 
 current_grades_listbox = tk.Listbox(root)
@@ -543,11 +549,11 @@ current_grades_listbox.grid(row=3, column=4, padx=10, pady=5, sticky="nsew")
 def update_user_info():
     selected_index = students_listbox.curselection()
     if selected_index:
-        text_input.config(state=tk.NORMAL)
-        previous_grades_entry.config(state=tk.NORMAL)
-        current_grades_entry.config(state=tk.NORMAL)
-        previous_grades_add_button.config(state=tk.NORMAL)
-        current_grades_add_button.config(state=tk.NORMAL)
+        text_input.configure(state=tk.NORMAL)
+        previous_grades_entry.configure(state=tk.NORMAL)
+        current_grades_entry.configure(state=tk.NORMAL)
+        previous_grades_add_button.configure(state=tk.NORMAL)
+        current_grades_add_button.configure(state=tk.NORMAL)
 
         text_input_label.grid()
         text_input.grid()
@@ -591,11 +597,11 @@ def update_user_info():
         current_grades_listbox.delete(0, tk.END)
         text_input.delete("1.0", tk.END)
 
-        text_input.config(state=tk.DISABLED)
-        previous_grades_entry.config(state=tk.DISABLED)
-        current_grades_entry.config(state=tk.DISABLED)
-        previous_grades_add_button.config(state=tk.DISABLED)
-        current_grades_add_button.config(state=tk.DISABLED)
+        text_input.configure(state=tk.DISABLED)
+        previous_grades_entry.configure(state=tk.DISABLED)
+        current_grades_entry.configure(state=tk.DISABLED)
+        previous_grades_add_button.configure(state=tk.DISABLED)
+        current_grades_add_button.configure(state=tk.DISABLED)
 
         text_input_label.grid_remove()
         text_input.grid_remove()
@@ -615,11 +621,11 @@ def update_user_info():
 def add_previous_grade():
     selected_index = students_listbox.curselection()
     if selected_index:
-        text_input.config(state=tk.NORMAL)
-        previous_grades_entry.config(state=tk.NORMAL)
-        current_grades_entry.config(state=tk.NORMAL)
-        previous_grades_add_button.config(state=tk.NORMAL)
-        current_grades_add_button.config(state=tk.NORMAL)
+        text_input.configure(state=tk.NORMAL)
+        previous_grades_entry.configure(state=tk.NORMAL)
+        current_grades_entry.configure(state=tk.NORMAL)
+        previous_grades_add_button.configure(state=tk.NORMAL)
+        current_grades_add_button.configure(state=tk.NORMAL)
 
         text_input_label.grid()
         text_input.grid()
@@ -671,11 +677,11 @@ def add_previous_grade():
         current_grades_listbox.delete(0, tk.END)
         text_input.delete("1.0", tk.END)
 
-        text_input.config(state=tk.DISABLED)
-        previous_grades_entry.config(state=tk.DISABLED)
-        current_grades_entry.config(state=tk.DISABLED)
-        previous_grades_add_button.config(state=tk.DISABLED)
-        current_grades_add_button.config(state=tk.DISABLED)
+        text_input.configure(state=tk.DISABLED)
+        previous_grades_entry.configure(state=tk.DISABLED)
+        current_grades_entry.configure(state=tk.DISABLED)
+        previous_grades_add_button.configure(state=tk.DISABLED)
+        current_grades_add_button.configure(state=tk.DISABLED)
 
         text_input_label.grid_remove()
         text_input.grid_remove()
@@ -697,11 +703,11 @@ def add_previous_grade():
 def add_current_grade():
     selected_index = students_listbox.curselection()
     if selected_index:
-        text_input.config(state=tk.NORMAL)
-        previous_grades_entry.config(state=tk.NORMAL)
-        current_grades_entry.config(state=tk.NORMAL)
-        previous_grades_add_button.config(state=tk.NORMAL)
-        current_grades_add_button.config(state=tk.NORMAL)
+        text_input.configure(state=tk.NORMAL)
+        previous_grades_entry.configure(state=tk.NORMAL)
+        current_grades_entry.configure(state=tk.NORMAL)
+        previous_grades_add_button.configure(state=tk.NORMAL)
+        current_grades_add_button.configure(state=tk.NORMAL)
 
         text_input_label.grid()
         text_input.grid()
@@ -748,11 +754,11 @@ def add_current_grade():
         current_grades_listbox.delete(0, tk.END)
         text_input.delete("1.0", tk.END)
 
-        text_input.config(state=tk.DISABLED)
-        previous_grades_entry.config(state=tk.DISABLED)
-        current_grades_entry.config(state=tk.DISABLED)
-        previous_grades_add_button.config(state=tk.DISABLED)
-        current_grades_add_button.config(state=tk.DISABLED)
+        text_input.configure(state=tk.DISABLED)
+        previous_grades_entry.configure(state=tk.DISABLED)
+        current_grades_entry.configure(state=tk.DISABLED)
+        previous_grades_add_button.configure(state=tk.DISABLED)
+        current_grades_add_button.configure(state=tk.DISABLED)
 
         text_input_label.grid_remove()
         text_input.grid_remove()
@@ -774,11 +780,11 @@ def add_current_grade():
 def clear_previous_grades():
     selected_index = students_listbox.curselection()
     if selected_index:
-        text_input.config(state=tk.NORMAL)
-        previous_grades_entry.config(state=tk.NORMAL)
-        current_grades_entry.config(state=tk.NORMAL)
-        previous_grades_add_button.config(state=tk.NORMAL)
-        current_grades_add_button.config(state=tk.NORMAL)
+        text_input.configure(state=tk.NORMAL)
+        previous_grades_entry.configure(state=tk.NORMAL)
+        current_grades_entry.configure(state=tk.NORMAL)
+        previous_grades_add_button.configure(state=tk.NORMAL)
+        current_grades_add_button.configure(state=tk.NORMAL)
 
         text_input_label.grid()
         text_input.grid()
@@ -803,11 +809,11 @@ def clear_previous_grades():
         current_grades_listbox.delete(0, tk.END)
         text_input.delete("1.0", tk.END)
 
-        text_input.config(state=tk.DISABLED)
-        previous_grades_entry.config(state=tk.DISABLED)
-        current_grades_entry.config(state=tk.DISABLED)
-        previous_grades_add_button.config(state=tk.DISABLED)
-        current_grades_add_button.config(state=tk.DISABLED)
+        text_input.configure(state=tk.DISABLED)
+        previous_grades_entry.configure(state=tk.DISABLED)
+        current_grades_entry.configure(state=tk.DISABLED)
+        previous_grades_add_button.configure(state=tk.DISABLED)
+        current_grades_add_button.configure(state=tk.DISABLED)
 
         text_input_label.grid_remove()
         text_input.grid_remove()
@@ -829,11 +835,11 @@ def clear_previous_grades():
 def clear_current_grades():
     selected_index = students_listbox.curselection()
     if selected_index:
-        text_input.config(state=tk.NORMAL)
-        previous_grades_entry.config(state=tk.NORMAL)
-        current_grades_entry.config(state=tk.NORMAL)
-        previous_grades_add_button.config(state=tk.NORMAL)
-        current_grades_add_button.config(state=tk.NORMAL)
+        text_input.configure(state=tk.NORMAL)
+        previous_grades_entry.configure(state=tk.NORMAL)
+        current_grades_entry.configure(state=tk.NORMAL)
+        previous_grades_add_button.configure(state=tk.NORMAL)
+        current_grades_add_button.configure(state=tk.NORMAL)
 
         text_input_label.grid()
         text_input.grid()
@@ -858,11 +864,11 @@ def clear_current_grades():
         current_grades_listbox.delete(0, tk.END)
         text_input.delete("1.0", tk.END)
 
-        text_input.config(state=tk.DISABLED)
-        previous_grades_entry.config(state=tk.DISABLED)
-        current_grades_entry.config(state=tk.DISABLED)
-        previous_grades_add_button.config(state=tk.DISABLED)
-        current_grades_add_button.config(state=tk.DISABLED)
+        text_input.configure(state=tk.DISABLED)
+        previous_grades_entry.configure(state=tk.DISABLED)
+        current_grades_entry.configure(state=tk.DISABLED)
+        previous_grades_add_button.configure(state=tk.DISABLED)
+        current_grades_add_button.configure(state=tk.DISABLED)
 
         text_input_label.grid_remove()
         text_input.grid_remove()
@@ -883,38 +889,38 @@ def clear_current_grades():
 
 students_listbox.bind("<<ListboxSelect>>", lambda _: update_user_info())
 
-previous_grades_entry_label = tk.Label(root, text="Enter Previous Grade (subject:grade)")
+previous_grades_entry_label = ctk.CTkLabel(root, text="Enter Previous Grade (subject:grade)")
 previous_grades_entry_label.grid(row=2, column=0, padx=10, pady=5, sticky="e")
-previous_grades_entry = tk.Entry(root)
+previous_grades_entry = ctk.CTkEntry(root)
 previous_grades_entry.grid(row=2, column=1, padx=10, pady=5, sticky="ew")
 previous_grades_entry.bind("<Return>", (lambda _: add_previous_grade()))
 
-previous_grades_add_button = tk.Button(root, text="Add Grade", command=add_previous_grade)
+previous_grades_add_button = ctk.CTkButton(root, text="Add Grade", command=add_previous_grade)
 previous_grades_add_button.grid(row=2, column=2, padx=10, pady=5, sticky="ew")
 
-previous_grades_clear_button = tk.Button(root, text="Clear Grades", command=clear_previous_grades)
+previous_grades_clear_button = ctk.CTkButton(root, text="Clear Grades", command=clear_previous_grades)
 previous_grades_clear_button.grid(row=3, column=2, padx=10, pady=5, sticky="ew")
 
-current_grades_entry_label = tk.Label(root, text="Enter Current Grade (subject:grade)")
+current_grades_entry_label = ctk.CTkLabel(root, text="Enter Current Grade (subject:grade)")
 current_grades_entry_label.grid(row=2, column=3, padx=10, pady=5, sticky="e")
-current_grades_entry = tk.Entry(root)
+current_grades_entry = ctk.CTkEntry(root)
 current_grades_entry.grid(row=2, column=4, padx=10, pady=5, sticky="ew")
 current_grades_entry.bind("<Return>", (lambda _: add_current_grade()))
 
-current_grades_add_button = tk.Button(root, text="Add Grade", command=add_current_grade)
+current_grades_add_button = ctk.CTkButton(root, text="Add Grade", command=add_current_grade)
 current_grades_add_button.grid(row=2, column=5, padx=10, pady=5, sticky="ew")
 
-current_grades_clear_button = tk.Button(root, text="Clear Grades", command=clear_current_grades)
+current_grades_clear_button = ctk.CTkButton(root, text="Clear Grades", command=clear_current_grades)
 current_grades_clear_button.grid(row=3, column=5, padx=10, pady=5, sticky="ew")
 
-instagram_username_label = tk.Label(root, text="Your Instagram Username")
+instagram_username_label = ctk.CTkLabel(root, text="Your Instagram Username")
 instagram_username_label.grid(row=4, column=0, padx=10, pady=5, sticky="e")
-instagram_username_entry = tk.Entry(root)
+instagram_username_entry = ctk.CTkEntry(root)
 instagram_username_entry.grid(row=4, column=1, padx=10, pady=5, sticky="ew")
 
-instagram_password_label = tk.Label(root, text="Your Instagram Password")
+instagram_password_label = ctk.CTkLabel(root, text="Your Instagram Password")
 instagram_password_label.grid(row=4, column=3, padx=10, pady=5, sticky="e")
-instagram_password_entry = tk.Entry(root, show="*")
+instagram_password_entry = ctk.CTkEntry(root, show="*")
 instagram_password_entry.grid(row=4, column=4, padx=10, pady=5, sticky="ew")
 
 def save_to_csv():
@@ -945,38 +951,40 @@ def show_details(current_selection):
         return
 
     details_window = tk.Toplevel()
+    details_window.configure(bg = "gray12")
+    details_window.geometry("400x300")
     if selected_user[0] == "":
         details_window.title("Details")
     else:
         details_window.title(f"Details for {selected_user[0]}")
 
-    results_label = tk.Label(details_window, text=f"Details for {selected_user[0]}")
+    results_label = ctk.CTkLabel(details_window, text=f"Details for {selected_user[0]}")
     results_label.pack(padx=10)
 
-    mental_health_label = tk.Label(details_window, text=f"Mental Health Score: {round(selected_user[2], 3)}")
+    mental_health_label = ctk.CTkLabel(details_window, text=f"Mental Health Score: {round(selected_user[2], 3)}")
     mental_health_label.pack()
 
     if selected_user[2] < -0.5:
-        mental_health_label.config(fg="red")
+        mental_health_label.configure(text_color="red")
     elif selected_user[2] < 0:
-        mental_health_label.config(fg="orange")
+        mental_health_label.configure(text_color="orange")
     elif 0 < selected_user[2] <= 0.5:
-        mental_health_label.config(fg="yellow")
+        mental_health_label.configure(text_color="yellow")
     elif selected_user[2] > 0.5:
-        mental_health_label.config(fg="green")
+        mental_health_label.configure(text_color="green")
 
     if selected_user[1] != "":
-        instagram_score_label = tk.Label(details_window,
+        instagram_score_label = ctk.CTkLabel(details_window,
                                          text=f"Instagram Positivity Score: {round(selected_user[3].overall_health_score, 3)}")
         instagram_score_label.pack(padx=10)
         if selected_user[3].overall_health_score < -0.5:
-            instagram_score_label.config(fg="red")
+            instagram_score_label.configure(fg="red")
         elif selected_user[3].overall_health_score < 0:
-            instagram_score_label.config(fg="orange")
+            instagram_score_label.configure(fg="orange")
         elif 0 < selected_user[3].overall_health_score <= 0.5:
-            instagram_score_label.config(fg="yellow")
+            instagram_score_label.configure(fg="yellow")
         elif selected_user[3].overall_health_score > 0.5:
-            instagram_score_label.config(fg="green")
+            instagram_score_label.configure(fg="green")
 
         instagram_results_listbox = tk.Listbox(details_window)
         instagram_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
@@ -1003,21 +1011,21 @@ def show_details(current_selection):
             elif result.health_score > 0.5:
                 instagram_results_listbox.itemconfig(tk.END, {'fg': 'green'})
     else:
-        instagram_score_label = tk.Label(details_window, text="No Instagram account provided.")
+        instagram_score_label = ctk.CTkLabel(details_window, text="No Instagram account provided.")
         instagram_score_label.pack(padx=10, pady=5)
 
     if len(selected_user[4].results) > 0:
-        grades_score_label = tk.Label(details_window, text=f"Grade Improvement Score: "
+        grades_score_label = ctk.CTkLabel(details_window, text=f"Grade Improvement Score: "
             f"{round(selected_user[4].overall_health_score, 3)}")
         grades_score_label.pack(padx=10)
         if selected_user[4].overall_health_score < -0.5:
-            grades_score_label.config(fg="red")
+            grades_score_label.configure(fg="red")
         elif selected_user[4].overall_health_score < 0:
-            grades_score_label.config(fg="orange")
+            grades_score_label.configure(fg="orange")
         elif 0 < selected_user[4].overall_health_score <= 0.5:
-            grades_score_label.config(fg="yellow")
+            grades_score_label.configure(fg="yellow")
         elif selected_user[4].overall_health_score > 0.5:
-            grades_score_label.config(fg="green")
+            grades_score_label.configure(fg="green")
 
         grades_results_listbox = tk.Listbox(details_window)
         grades_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
@@ -1032,28 +1040,28 @@ def show_details(current_selection):
             elif result.change > 0.5:
                 grades_results_listbox.itemconfig(tk.END, {'fg': 'green'})
     else:
-        grades_score_label = tk.Label(details_window, text="No grades could be compared.")
+        grades_score_label = ctk.CTkLabel(details_window, text="No grades could be compared.")
         grades_score_label.pack(padx=10, pady=5)
     
     if selected_user[5].student_text != "":
-        text_score_label = tk.Label(details_window, text=f"Text Health Score: "
+        text_score_label = ctk.CTkLabel(details_window, text=f"Text Health Score: "
             f"{round(selected_user[5].overall_health_score, 3)}")
         text_score_label.pack(padx=10)
         if selected_user[5].overall_health_score < -0.5:
-            text_score_label.config(fg="red")
+            text_score_label.configure(fg="red")
         elif selected_user[5].overall_health_score < 0:
-            text_score_label.config(fg="orange")
+            text_score_label.configure(fg="orange")
         elif 0 < selected_user[5].overall_health_score <= 0.5:
-            text_score_label.config(fg="yellow")
+            text_score_label.configure(fg="yellow")
         elif selected_user[5].overall_health_score > 0.5:
-            text_score_label.config(fg="green")
+            text_score_label.configure(fg="green")
 
-        text_display_box = tk.Text(details_window)
+        text_display_box = ctk.CTkText(details_window)
         text_display_box.pack(padx=10, fill=tk.BOTH, expand=True)
         text_display_box.insert("1.0", selected_user[5].student_text)
-        text_display_box.config(state=tk.DISABLED)
+        text_display_box.configure(state=tk.DISABLED)
     else:
-        text_score_label = tk.Label(details_window, text="No text was provided.")
+        text_score_label = ctk.CTkLabel(details_window, text="No text was provided.")
         text_score_label.pack(padx=10, pady=5)
 
 def run_basic_health_assessment(user_input, total_users):
@@ -1131,9 +1139,11 @@ def run_basic_health_assessment(user_input, total_users):
         assessment_results.sort(key=sort_key)
 
         results_window = tk.Toplevel()
+        results_window.configure(bg = "gray12")
+        results_window.geometry("400x300")
         results_window.title("Results Summary")
 
-        results_label = tk.Label(results_window, text="Results Summary")
+        results_label = ctk.CTkLabel(results_window, text="Results Summary", fg_color="black")
         results_label.pack(padx=10)
 
         results_listbox = tk.Listbox(results_window)
@@ -1149,11 +1159,11 @@ def run_basic_health_assessment(user_input, total_users):
             elif result[2] > 0.5:
                 results_listbox.itemconfig(tk.END, {'fg': 'green'})
 
-        show_more_button = tk.Button(results_window, text="Show Details",
+        show_more_button = ctk.CTkButton(results_window, text="Show Details", height=50,
                                      command=lambda: show_details(results_listbox.curselection()))
         show_more_button.pack(padx=10, pady=5)
 
-        save_to_csv_button = tk.Button(results_window, text="Save to CSV", command=save_to_csv)
+        save_to_csv_button = ctk.CTkButton(results_window, text="Save to CSV", height=50,command=save_to_csv)
         save_to_csv_button.pack(padx=10, pady=5)
 
         results_window.rowconfigure(1, weight=1)
@@ -1186,26 +1196,75 @@ def run_mass_assessment():
     for username in student_names:
         threading.Thread(target=run_basic_health_assessment,
                          args=(username, len(student_names))).start()
+        
+def open_speech_window():
+    global text_box, record_button
 
-analyze_brightness_mass_checkbox = tk.Checkbutton(root, text="Analyze Image Brightness (fast)",
+    speech_window = tk.Toplevel(root)
+    speech_window.configure(bg = "gray12")
+    speech_window.geometry("400x300")
+    speech_window.title("Speech Recognition")
+
+    text_box = ctk.CTkTextbox(master=speech_window, width=300, height=150, fg_color="white", text_color="black")
+    text_box.pack(pady=20)
+
+    record_button = ctk.CTkButton(master=speech_window, text="Start Recording", command=start_recording)
+    record_button.pack(pady=10)
+
+def start_recording():
+    global record_button
+    record_button.configure(state=ctk.DISABLED)
+    threading.Thread(target=record_speech).start()
+
+def record_speech():
+    global text_box, record_button
+
+    with sr.Microphone() as source:
+        recognizer.adjust_for_ambient_noise(source)
+        update_text_box("Listening...")
+        audio = recognizer.listen(source)
+
+        try:
+            update_text_box("Recognizing speech...")
+            text = recognizer.recognize_google(audio)
+            update_text_box(f"Recognized text: {text}")
+            update_text_box(f"Mental health score: {text_health_analysis(text)}")
+        except sr.UnknownValueError:
+            update_text_box("Could not understand the audio.")
+        except sr.RequestError as e:
+            update_text_box(f"Could not request results; {e}")
+
+    record_button.configure(state=ctk.NORMAL)
+
+def update_text_box(text):
+    global text_box
+    text_box.insert('end', text + '\n')
+    text_box.see('end')
+
+analyze_brightness_mass_checkbox = ctk.CTkCheckBox(root, text="Analyze Image Brightness (fast)",
                                                   variable=analyze_brightness, onvalue=True,
                                                   offvalue=False)
 analyze_brightness_mass_checkbox.grid(row=5, column=0, columnspan=3, pady=5)
 
-analyze_images_mass_checkbox = tk.Checkbutton(root, text="Analyze Image Text (could take longer)",
+analyze_images_mass_checkbox = ctk.CTkCheckBox(root, text="Analyze Image Text (could take longer)",
                                               variable=analyze_images, onvalue=True,
                                               offvalue=False)
 analyze_images_mass_checkbox.grid(row=5, column=3, columnspan=3, pady=5)
 
-run_mass_assessment_button = tk.Button(root, text="Run Mass Assessment",
+run_mass_assessment_button = ctk.CTkButton(root, text="Run Mass Assessment",
                                        command=run_mass_assessment)
 run_mass_assessment_button.grid(row=6, column=0, columnspan=6, padx=10, pady=5, sticky="ew")
 
-text_input.config(state=tk.DISABLED)
-previous_grades_entry.config(state=tk.DISABLED)
-current_grades_entry.config(state=tk.DISABLED)
-previous_grades_add_button.config(state=tk.DISABLED)
-current_grades_add_button.config(state=tk.DISABLED)
+start_recording_button = ctk.CTkButton(root, text="Run Speech Assessment")
+start_recording_button.configure(command=open_speech_window)
+start_recording_button.grid(row=7, column=0, columnspan=6, padx=10, pady=5, sticky="ew")
+
+
+text_input.configure(state=tk.DISABLED)
+previous_grades_entry.configure(state=tk.DISABLED)
+current_grades_entry.configure(state=tk.DISABLED)
+previous_grades_add_button.configure(state=tk.DISABLED)
+current_grades_add_button.configure(state=tk.DISABLED)
 
 text_input_label.grid_remove()
 text_input.grid_remove()

@@ -1,7 +1,7 @@
-/myenv/
-/.venv/
+/venv/
 /__pycache__/
 /.mypy_cache/
 /.idea/
 /account_list.txt
 /mass_results.csv
+/.vscode/
