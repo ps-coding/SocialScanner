@@ -977,13 +977,13 @@ def show_details(current_selection):
                                          text=f"Instagram Positivity Score: {round(selected_user[3].overall_health_score, 3)}")
         instagram_score_label.pack(padx=10)
         if selected_user[3].overall_health_score < -0.5:
-            instagram_score_label.configure(fg="red")
+            instagram_score_label.configure(text_color="red")
         elif selected_user[3].overall_health_score < 0:
-            instagram_score_label.configure(fg="orange")
+            instagram_score_label.configure(text_color="orange")
         elif 0 < selected_user[3].overall_health_score <= 0.5:
-            instagram_score_label.configure(fg="yellow")
+            instagram_score_label.configure(text_color="yellow")
         elif selected_user[3].overall_health_score > 0.5:
-            instagram_score_label.configure(fg="green")
+            instagram_score_label.configure(text_color="green")
 
         instagram_results_listbox = tk.Listbox(details_window)
         instagram_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
@@ -1018,13 +1018,13 @@ def show_details(current_selection):
             f"{round(selected_user[4].overall_health_score, 3)}")
         grades_score_label.pack(padx=10)
         if selected_user[4].overall_health_score < -0.5:
-            grades_score_label.configure(fg="red")
+            grades_score_label.configure(text_color="red")
         elif selected_user[4].overall_health_score < 0:
-            grades_score_label.configure(fg="orange")
+            grades_score_label.configure(text_color="orange")
         elif 0 < selected_user[4].overall_health_score <= 0.5:
-            grades_score_label.configure(fg="yellow")
+            grades_score_label.configure(text_color="yellow")
         elif selected_user[4].overall_health_score > 0.5:
-            grades_score_label.configure(fg="green")
+            grades_score_label.configure(text_color="green")
 
         grades_results_listbox = tk.Listbox(details_window)
         grades_results_listbox.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
@@ -1047,15 +1047,15 @@ def show_details(current_selection):
             f"{round(selected_user[5].overall_health_score, 3)}")
         text_score_label.pack(padx=10)
         if selected_user[5].overall_health_score < -0.5:
-            text_score_label.configure(fg="red")
+            text_score_label.configure(text_color="red")
         elif selected_user[5].overall_health_score < 0:
-            text_score_label.configure(fg="orange")
+            text_score_label.configure(text_color="orange")
         elif 0 < selected_user[5].overall_health_score <= 0.5:
-            text_score_label.configure(fg="yellow")
+            text_score_label.configure(text_color="yellow")
         elif selected_user[5].overall_health_score > 0.5:
-            text_score_label.configure(fg="green")
+            text_score_label.configure(text_color="green")
 
-        text_display_box = ctk.CTkText(details_window)
+        text_display_box = ctk.CTkTextbox(details_window)
         text_display_box.pack(padx=10, fill=tk.BOTH, expand=True)
         text_display_box.insert("1.0", selected_user[5].student_text)
         text_display_box.configure(state=tk.DISABLED)
