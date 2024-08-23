@@ -8,10 +8,11 @@
 # pip install torch torchvision --index-url https://download.pytorch.org/whl/rocm6.0
 # Linux/Windows/MacOS with only CPU (not recommended):
 # pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-pip install instaloader
-pip install nltk
-pip install opencv-python
-pip install easyocr
-# OR
-# pip install -r requirements.txt
+
+# If on MacOS, also uncomment the following line:
+# brew install portaudio
+# If on Linux, uncomment the following line:
+# sudo apt install python3-pyaudio
+
+pip install -r requirements.txt
 python prepare.py

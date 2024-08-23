@@ -15,7 +15,6 @@ import cv2
 import easyocr
 import instaloader
 import nltk
-nltk.download('punkt_tab')
 import nltk.corpus
 import nltk.sentiment
 import nltk.tokenize
