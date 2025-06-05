@@ -20,7 +20,7 @@ imgaug==0.4.0
 instaloader==4.11
 jax==0.4.30
 jaxlib==0.4.30
-Jinja2==3.1.4
+Jinja2==3.1.6
 joblib==1.4.2
 Keras-Applications==1.0.8
 kiwisolver==1.4.5
