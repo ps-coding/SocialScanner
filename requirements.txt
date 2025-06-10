@@ -50,7 +50,7 @@ python-bidi==0.4.2
 python-dateutil==2.9.0.post0
 PyYAML==6.0.1
 regex==2023.10.3
-requests==2.32.3
+requests==2.32.4
 scikit-image==0.24.0
 scipy==1.13.1
 setuptools==69.5.1
