@@ -66,6 +66,6 @@ torchvision==0.17.2
 tqdm==4.66.4
 ttkbootstrap==1.10.1
 typing_extensions==4.11.0
-urllib3==2.2.2
+urllib3==2.5.0
 validators==0.28.3
 wheel==0.35.1
