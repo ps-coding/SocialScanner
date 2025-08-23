@@ -10,6 +10,7 @@
 ## Setup
 
 - Execute `./install/setup.sh` to install all dependencies and set up the ML models (make sure the correct lines for your OS are uncommented in the script)
+  - May need to run `chmod +x ./install/setup.sh` to make the file executable first on a Unix-like system
 - Run `python app/main.py` to start the GUI
 
 ## More Info
