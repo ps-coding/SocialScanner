@@ -137,7 +137,7 @@ def instagram_health_assessment(username: str) -> InstagramHealthAssessment:
                 InstagramHealthAssessment.AssessmentResult(full_text, post.date_utc, current_health_score))
             health_score += current_health_score * recency_factor
 
-        recency_factor /= 1.5
+        recency_factor /= 1.5 # older posts decreased in importance by a factor of 1.5
 
     if len(results) == 0 or (len(results) == 1 and results[0].caption.strip() == "(BIO)"):
         return InstagramHealthAssessment(0.0,
