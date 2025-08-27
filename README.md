@@ -15,6 +15,6 @@
 
 ## More Info
 
-See this [Google Slides presentation](https://docs.google.com/presentation/d/13rB1L6zyFAN_5x2AQQ9W1SobG433vgJ0ArSlQ-GNRxU/edit?usp=sharing) or the [PDF on this repo](docs/SocialScanner_Presentation.pdf), presented to Northern Burlington County Regional High School's administration regarding this project. Our presentation earned us commendation and backing.
+See this [Google Slides presentation](https://docs.google.com/presentation/d/13rB1L6zyFAN_5x2AQQ9W1SobG433vgJ0ArSlQ-GNRxU/edit?usp=sharing) or the [PDF on this repo](docs/SocialScanner_Presentation.pdf), presented to Northern Burlington County Regional High School's administration regarding this project. Our presentation earned us commendation and backing. A modified version of the slideshow was presented at a national Technology Student Association conference, receiving overwhelmingly positive feedback and a few critiques that have helped us improve the software even further.
 
-Next, we plan to expand much further (~6 schools by the end of the year).
+Next, we plan to expand to ~6 schools by the end of the year (so far, we are on track to meet that goal).
