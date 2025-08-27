@@ -4,8 +4,8 @@
 
 ## Collaborators
 
-- Prasham Shah (Team Lead and Coder)
-- Samik Shah (Coder)
+- [Prasham Shah](https://github.com/ps-coding) (Team Lead and Main Coder)
+- [Samik Shah](https://github.com/samik-py) (Coder)
 
 ## Setup
 
@@ -15,5 +15,5 @@
 
 ## More Info
 
-See this [Google Slides presentation](https://docs.google.com/presentation/d/13rB1L6zyFAN_5x2AQQ9W1SobG433vgJ0ArSlQ-GNRxU/edit?usp=sharing) or the [PDF on this repo](docs/SocialScanner_Presentation.pdf), delivered to Northern Burlington County Regional High School's administration regarding this project.
-The initiative was already commended by the school, and we plan to expand much further (hopefully 6 schools by the end of the year).
+See this [Google Slides presentation](https://docs.google.com/presentation/d/13rB1L6zyFAN_5x2AQQ9W1SobG433vgJ0ArSlQ-GNRxU/edit?usp=sharing) or the [PDF on this repo](docs/SocialScanner_Presentation.pdf), presented to Northern Burlington County Regional High School's administration regarding this project. Our presentation earned us commendation and backing.
+Next, We plan to expand much further (hopefully 6 schools by the end of the year).
