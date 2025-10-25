@@ -24,6 +24,7 @@ sentiment_analyzer = nltk.sentiment.vader.SentimentIntensityAnalyzer()
 instagram_bot = instaloader.Instaloader()
 reader = easyocr.Reader(['en'])
 recognizer = sr.Recognizer()
+splice_level = 3
 
 
 def preprocess_text(text: str) -> str:
