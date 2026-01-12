@@ -25,6 +25,7 @@ instagram_bot = instaloader.Instaloader()
 reader = easyocr.Reader(['en'])
 recognizer = sr.Recognizer()
 splice_level = 3
+secondary_splicing = 10
 
 
 def preprocess_text(text: str) -> str:
