@@ -1,4 +1,5 @@
-# SocialScanner (*OLD, PARTIAL VERSION*)
+# SocialScanner
+### *(Old, partial version. Contact if need full code.)*
 
 ## Working to improve student mental health and make schools safer, one line of code at a time
 
