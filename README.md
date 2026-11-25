@@ -17,6 +17,6 @@
 
 See this [Google Slides presentation](https://docs.google.com/presentation/d/13rB1L6zyFAN_5x2AQQ9W1SobG433vgJ0ArSlQ-GNRxU/edit?usp=sharing) or the [PDF on this repo](docs/SocialScanner_Presentation.pdf), presented to Northern Burlington County Regional High School's administration regarding this project. Our presentation earned us the school's commendation and backing.
 
-To ensure safety, all features have explicit guards, unremovable by schools or even us, to ensure student consent (e.g., for social media data, the student must explicitly approve a request from Instagram in order to have their data monitored—this is a decision students/families can make for themselves).
-
 A modified version of the slideshow was presented at a national TSA conference, receiving overwhelmingly positive feedback and a few critiques that have helped us improve the software even further. We are already on track to expand into 6 more schools this year.
+
+Note that to ensure safety, all features have explicit guards, unremovable by schools or even us, to ensure student consent (e.g., for social media data, the student must explicitly approve a request from Instagram in order to have their data monitored—this is a decision students/families can make for themselves). This is by design, and not something we are willing to compromise on.
