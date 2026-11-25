@@ -1,3 +1,5 @@
+# Note: This repository contains an older, simpler version of the codebase when we primarily relied on basic prebuilt models. We've since improved significantly, using fully custom-trained models, but, for now, we have decided not to make the full ML training open source both for legal reasons and in case we decide to commercialize.
+
 import csv
 import dataclasses
 import datetime
